@@ -173,7 +173,6 @@ impl ConvergentAccumulator {
     }
 }
 
-// Standard structural implementations for Add, Sub, and Div remain unchanged...
 impl Add for I64F64 {
     type Output = Self;
     #[inline]
@@ -211,5 +210,109 @@ impl Div for I64F64 {
             Some(val) => Self(val),
             None => panic!("CRITICAL MATH EXCEPTION: I64F64 Integer Division Overflow"),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // =========================================================================
+    // REQ TRACE: LLR-MATH-OPS-001 - ADDITION & SUBTRACTION OVERFLOW
+    // =========================================================================
+    #[test]
+    #[should_panic(expected = "CRITICAL MATH EXCEPTION: I64F64 Addition Overflow")]
+    fn test_addition_overflow_gate() {
+        let max = I64F64::from_bits(i128::MAX);
+        let one = I64F64::from_bits(1);
+        let _ = max + one;
+    }
+
+    #[test]
+    #[should_panic(expected = "CRITICAL MATH EXCEPTION: I64F64 Subtraction Overflow")]
+    fn test_subtraction_overflow_gate() {
+        let min = I64F64::from_bits(i128::MIN);
+        let one = I64F64::from_bits(1);
+        let _ = min - one;
+    }
+
+    // =========================================================================
+    // REQ TRACE: LLR-MATH-OPS-003 - DIVISION BY ZERO & SHIFT OVERFLOW
+    // =========================================================================
+    #[test]
+    #[should_panic(expected = "CRITICAL MATH EXCEPTION: Division By Zero")]
+    fn test_div_by_zero_gate() {
+        let a = I64F64::from_bits(I64F64::SCALE);
+        let zero = I64F64::from_bits(0);
+        let _ = a / zero;
+    }
+
+    #[test]
+    #[should_panic(expected = "CRITICAL MATH EXCEPTION: I64F64 Division Numerator Shift Overflow")]
+    fn test_div_numerator_shift_overflow() {
+        let huge = I64F64::from_bits(i128::MAX - 1);
+        let one = I64F64::from_bits(I64F64::SCALE);
+        let _ = huge / one;
+    }
+
+    // =========================================================================
+    // REQ TRACE: LLR-MATH-OPS-002 (Step 1) - SIGN ISOLATION & PRIMITIVE BYPASS
+    // =========================================================================
+    #[cfg(kani)]
+    #[kani::proof]
+    #[kani::unwind(2)]
+    fn verify_sign_isolation_and_bypass() {
+        let bit_a: i128 = kani::any();
+        let bit_b: i128 = kani::any();
+
+        kani::assume(bit_a > -1_000_000_000 && bit_a < 1_000_000_000);
+        kani::assume(bit_b > -1_000_000_000 && bit_b < 1_000_000_000);
+
+        let a = I64F64::from_bits(bit_a);
+        let b = I64F64::from_bits(bit_b);
+
+        let expected_negative = (bit_a < 0) ^ (bit_b < 0);
+        let result = a * b;
+
+        if result.to_bits() != 0 {
+            assert_eq!(result.to_bits() < 0, expected_negative);
+        }
+    }
+
+    // =========================================================================
+    // REQ TRACE: LLR-MATH-OPS-002 (Step 3) - EXPONENTIAL OVERFLOW GATES
+    // =========================================================================
+    #[cfg(kani)]
+    #[kani::proof]
+    #[kani::unwind(2)]
+    fn verify_exponential_overflow_traps() {
+        let bit_a: i128 = kani::any();
+        let bit_b: i128 = kani::any();
+
+        kani::assume(bit_a > i128::MAX - 10_000 || bit_a < i128::MIN + 10_000);
+        kani::assume(bit_b > i128::MAX - 10_000 || bit_b < i128::MIN + 10_000);
+
+        let a = I64F64::from_bits(bit_a);
+        let b = I64F64::from_bits(bit_b);
+
+        let _result = a * b;
+    }
+
+    // =========================================================================
+    // REQ TRACE: HLR-MATH-OPS-002 / LLR-MATH-OPS-002 (Step 2) - CONVERGENT TIE-BREAK
+    // =========================================================================
+    #[cfg(kani)]
+    #[kani::proof]
+    #[kani::unwind(2)]
+    fn verify_convergent_rounding_ties() {
+        let bit_a: i128 = kani::any();
+        
+        kani::assume(bit_a > -10_000_000 && bit_a < 1_000_000_000);
+        let a = I64F64::from_bits(bit_a);
+
+        let half = I64F64::from_bits(I64F64::SCALE >> 1); 
+        let result = a.mul_convergent(half);
+
+        assert_eq!(result.to_bits() & 1, 0);
     }
 }

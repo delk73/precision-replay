@@ -8,6 +8,9 @@ members = [
 ]
 resolver = "2"
 
+# Prevents bare-metal runner binaries from colliding with the host std library during default test sweeps
+default-members = ["core"]
+
 # Fixes the 'unwinding panics' error during standard development runs (cargo check / cargo build)
 [profile.dev]
 panic = "abort"
