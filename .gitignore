@@ -1,0 +1,12 @@
+# Compilation Artifacts
+/target/
+**/*.rs.bk
+
+# Local Private Test Suite (The Sequester Boundary)
+/precision-replay-sequester/
+**/*_sequestered/
+
+# OS and IDE Cruft
+.DS_Store
+.vscode/
+.idea/
