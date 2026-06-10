@@ -1,0 +1,20 @@
+[workspace]
+members = [
+    "core",
+    "bsp/stm32",
+    "bsp/pru",
+    "runners/stm32-runner",
+    "runners/pru-runner"
+]
+resolver = "2"
+
+# Fixes the 'unwinding panics' error during standard development runs (cargo check / cargo build)
+[profile.dev]
+panic = "abort"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+debug = true  # Mandatory for Executable Object Code (EOC) traceability

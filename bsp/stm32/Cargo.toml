@@ -1,0 +1,13 @@
+[package]
+name = "bsp-stm32"
+version = "0.1.0"
+edition = "2021"
+
+[features]
+default = []
+# Explicit part numbers only. Wildcards are strictly prohibited.
+stm32f446 = []
+stm32h743 = []
+
+[dependencies]
+precision-replay-core = { path = "../../core" }
