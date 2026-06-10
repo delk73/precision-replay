@@ -1,0 +1,15 @@
+[package]
+name = "pru-runner"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+precision-replay-core = { path = "../../core" }
+bsp-pru = { path = "../../bsp/pru" }
+
+[[bin]]
+name = "pru-runner"
+path = "src/main.rs"
+test = false
+doctest = false

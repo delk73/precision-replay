@@ -1,0 +1,16 @@
+[package]
+name = "precision-replay-core"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name"]
+description = "Deterministic, platform-agnostic replay engine core"
+
+[dependencies]
+# Fixed-point math and formal verification dependencies go here
+
+[lib]
+name = "precision_replay_core"
+path = "src/lib.rs"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

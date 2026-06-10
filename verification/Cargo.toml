@@ -1,0 +1,15 @@
+[package]
+name = "verification"
+version = "0.1.0"
+edition = "2021"
+description = "Local formal verification harnesses for precision-replay"
+
+[dependencies]
+precision-replay-core = { path = "../core" }
+
+[lib]
+name = "verification"
+path = "src/lib.rs"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
