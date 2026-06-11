@@ -89,7 +89,7 @@ impl I64F64 {
 
         // Branch-free evaluation selection masks
         let is_above_half = ((tie_boundary as i64 - discarded_fraction as i64) >> 63) as u128;
-        let is_exact_half = (((discarded_fraction ^ tie_boundary) as i128).wrapping_sub(1) >> 127) as u128;
+        let is_exact_half = (((discarded_fraction ^ tie_boundary as u128) as i128).wrapping_sub(1) >> 127) as u128;
         let is_odd = (scaled_result & 1) as u128;
 
         let round_up = is_above_half | (is_exact_half & is_odd);
