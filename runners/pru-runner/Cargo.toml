@@ -7,3 +7,9 @@ publish = false
 [dependencies]
 precision-replay-core = { path = "../../core" }
 bsp-pru = { path = "../../bsp/pru" }
+
+[[bin]]
+name = "pru-runner"
+path = "src/main.rs"
+test = false
+doctest = false

@@ -7,3 +7,9 @@ publish = false
 [dependencies]
 precision-replay-core = { path = "../../core" }
 bsp-stm32 = { path = "../../bsp/stm32", features = ["stm32f446"] }
+
+[[bin]]
+name = "stm32-runner"
+path = "src/main.rs"
+test = false
+doctest = false
