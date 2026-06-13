@@ -1,4 +1,6 @@
-use core::ops::{Add, Sub, Mul, Div};
+#![allow(clippy::arithmetic_side_effects)]
+
+use core::ops::{Add, Div, Mul, Sub};
 
 /// A deterministic, platform-agnostic 128-bit fixed-point number
 /// with a signed 64-bit integer part and a 64-bit fractional part.
@@ -84,13 +86,14 @@ impl I64F64 {
         // TIE-BREAKING ALIGNMENT (Round-Half-to-Even)
         let discarded_fraction = ll & 0xFFFFFFFFFFFFFFFF;
         let tie_boundary = 0x8000000000000000u64;
-        
+
         let mut scaled_result = cross_lo.checked_add(ll >> 64).unwrap();
 
         // Branch-free evaluation selection masks
         let is_above_half = ((tie_boundary as i64 - discarded_fraction as i64) >> 63) as u128;
-        let is_exact_half = (((discarded_fraction ^ tie_boundary as u128) as i128).wrapping_sub(1) >> 127) as u128;
-        let is_odd = (scaled_result & 1) as u128;
+        let is_exact_half =
+            (((discarded_fraction ^ tie_boundary as u128) as i128).wrapping_sub(1) >> 127) as u128;
+        let is_odd = scaled_result & 1;
 
         let round_up = is_above_half | (is_exact_half & is_odd);
         scaled_result = scaled_result.checked_add(round_up).unwrap();
@@ -104,7 +107,36 @@ impl I64F64 {
         }
 
         let final_signed = scaled_result as i128;
-        if out_negative { Self(-final_signed) } else { Self(final_signed) }
+        if out_negative {
+            Self(-final_signed)
+        } else {
+            Self(final_signed)
+        }
+    }
+}
+
+/// # Low-Level Requirement: LLR-REPLAY-MATH-CONVERGENT
+/// Accumulator-to-integer conversion shall eliminate directional bias by rounding
+/// to nearest and breaking exact half-scale ties toward the even integral value.
+///
+/// **Verification Vector:** `verification::proofs::verify_accumulator_convergent_rounding`
+#[inline(always)]
+pub fn round_ties_to_even(accum: I64F64) -> i128 {
+    const FRACTION_MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
+    const HALF_SCALE: u128 = 0x8000_0000_0000_0000;
+
+    let bits = accum.to_bits();
+    let integral_part = bits >> I64F64::FRAC_BITS;
+    let fractional_part = bits as u128 & FRACTION_MASK;
+
+    let is_above_half = (fractional_part > HALF_SCALE) as i128;
+    let is_exact_half = (fractional_part == HALF_SCALE) as i128;
+    let is_integral_odd = integral_part & 1;
+    let increment = is_above_half | (is_exact_half & is_integral_odd);
+
+    match integral_part.checked_add(increment) {
+        Some(value) => value,
+        None => panic!("CRITICAL MATH EXCEPTION: I64F64 Convergent Rounding Overflow"),
     }
 }
 
@@ -142,7 +174,11 @@ impl Mul for I64F64 {
         }
 
         let final_signed = final_abs_bits as i128;
-        if out_negative { Self(-final_signed) } else { Self(final_signed) }
+        if out_negative {
+            Self(-final_signed)
+        } else {
+            Self(final_signed)
+        }
     }
 }
 
@@ -199,7 +235,9 @@ impl Div for I64F64 {
     type Output = Self;
     #[inline]
     fn div(self, rhs: Self) -> Self::Output {
-        if rhs.0 == 0 { panic!("CRITICAL MATH EXCEPTION: Division By Zero"); }
+        if rhs.0 == 0 {
+            panic!("CRITICAL MATH EXCEPTION: Division By Zero");
+        }
         let leading_zeros = self.0.leading_zeros();
         let leading_ones = self.0.leading_ones();
         if (self.0 > 0 && leading_zeros < 64) || (self.0 < 0 && leading_ones < 64) {
@@ -256,6 +294,35 @@ mod tests {
     }
 
     // =========================================================================
+    // REQ TRACE: LLR-REPLAY-MATH-CONVERGENT - INTEGER TIES-TO-EVEN ROUNDING
+    // =========================================================================
+    #[test]
+    fn test_round_ties_to_even_positive_values() {
+        let one_quarter = I64F64::from_bits(I64F64::SCALE + (I64F64::SCALE >> 2));
+        let three_quarters = I64F64::from_bits(I64F64::SCALE + ((I64F64::SCALE >> 2) * 3));
+        let one_and_half = I64F64::from_bits(I64F64::SCALE + (I64F64::SCALE >> 1));
+        let two_and_half = I64F64::from_bits((I64F64::SCALE * 2) + (I64F64::SCALE >> 1));
+
+        assert_eq!(round_ties_to_even(one_quarter), 1);
+        assert_eq!(round_ties_to_even(three_quarters), 2);
+        assert_eq!(round_ties_to_even(one_and_half), 2);
+        assert_eq!(round_ties_to_even(two_and_half), 2);
+    }
+
+    #[test]
+    fn test_round_ties_to_even_negative_values() {
+        let minus_one_quarter = I64F64::from_bits(-(I64F64::SCALE + (I64F64::SCALE >> 2)));
+        let minus_three_quarters = I64F64::from_bits(-(I64F64::SCALE + ((I64F64::SCALE >> 2) * 3)));
+        let minus_one_and_half = I64F64::from_bits(-(I64F64::SCALE + (I64F64::SCALE >> 1)));
+        let minus_two_and_half = I64F64::from_bits(-((I64F64::SCALE * 2) + (I64F64::SCALE >> 1)));
+
+        assert_eq!(round_ties_to_even(minus_one_quarter), -1);
+        assert_eq!(round_ties_to_even(minus_three_quarters), -2);
+        assert_eq!(round_ties_to_even(minus_one_and_half), -2);
+        assert_eq!(round_ties_to_even(minus_two_and_half), -2);
+    }
+
+    // =========================================================================
     // REQ TRACE: LLR-MATH-OPS-002 (Step 1) - SIGN ISOLATION & PRIMITIVE BYPASS
     // =========================================================================
     #[cfg(kani)]
@@ -306,11 +373,11 @@ mod tests {
     #[kani::unwind(2)]
     fn verify_convergent_rounding_ties() {
         let bit_a: i128 = kani::any();
-        
+
         kani::assume(bit_a > -10_000_000 && bit_a < 1_000_000_000);
         let a = I64F64::from_bits(bit_a);
 
-        let half = I64F64::from_bits(I64F64::SCALE >> 1); 
+        let half = I64F64::from_bits(I64F64::SCALE >> 1);
         let result = a.mul_convergent(half);
 
         assert_eq!(result.to_bits() & 1, 0);
