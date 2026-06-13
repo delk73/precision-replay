@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "core",
+    "verification",
     "bsp/stm32",
     "bsp/pru",
     "runners/stm32-runner",

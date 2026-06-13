@@ -35,3 +35,10 @@ dependencies = [
  "bsp-stm32",
  "precision-replay-core",
 ]
+
+[[package]]
+name = "verification"
+version = "0.1.0"
+dependencies = [
+ "precision-replay-core",
+]
