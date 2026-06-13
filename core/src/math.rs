@@ -119,7 +119,7 @@ impl I64F64 {
 /// Accumulator-to-integer conversion shall eliminate directional bias by rounding
 /// to nearest and breaking exact half-scale ties toward the even integral value.
 ///
-/// **Verification Vector:** `verification::proofs::verify_accumulator_convergent_rounding`
+/// **Verification Vector:** `verification::proofs::verify_accumulator_convergent_rounding_exhaustive`
 #[inline(always)]
 pub fn round_ties_to_even(accum: I64F64) -> i128 {
     const FRACTION_MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
