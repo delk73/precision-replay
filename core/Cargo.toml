@@ -11,3 +11,6 @@ description = "Deterministic, platform-agnostic replay engine core"
 [lib]
 name = "precision_replay_core"
 path = "src/lib.rs"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

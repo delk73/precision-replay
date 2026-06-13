@@ -1,4 +1,6 @@
 #![no_std]
+#![forbid(unsafe_code)]
+#![deny(clippy::arithmetic_side_effects)]
 
 //! Precision Replay Core
 //!
