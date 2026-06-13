@@ -13,7 +13,6 @@ pub mod proofs {
     /// Proves nearest-integer mapping across all fractional intervals and verifies
     /// that exact half-scale ties resolve toward the nearest even integer.
     #[kani::proof]
-    #[kani::unwind(2)]
     pub fn verify_accumulator_convergent_rounding_exhaustive() {
         let raw_accum: i128 = kani::any();
         kani::assume(raw_accum > i128::MIN && raw_accum < i128::MAX);
