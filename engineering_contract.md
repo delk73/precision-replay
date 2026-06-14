@@ -18,12 +18,14 @@ Terminology used in this contract:
     * explicitly specify `--target <approved-target-triple>`, or
     * invoke a repository-owned wrapper script that fixes the target deterministically.
   Host fallback caused by omitted target selection is prohibited for target-bound validation.
-* **Deterministic Profiles:**
-    * `panic = "abort"` for deterministic failure behavior.
-    * `lto = "fat"` and `codegen-units = 1` for deterministic optimization behavior.
-    * `debug = true` in release for repeatable symbol-level analysis and WCET auditability.
-    * `overflow-checks = true` is required in non-release validation profiles unless a documented proof obligation shows the check would mask the property under review.
-* **LTO Certification Note:** Because `lto = "fat"` can materially restructure generated object code, downstream structural coverage and source-to-object traceability must be addressed at the object-code level during formal certification activity.
+* **Deterministic Profiles:** To guarantee reproducible builds and straightforward structural coverage analysis, use these profile settings:
+    * `panic = "abort"`: Halts the system immediately on a critical error instead of attempting an unpredictable unwinding sequence.
+    * `lto = false` and `codegen-units = 1`: Disables parallel compilation and global optimization. This ensures identical builds every time and keeps the final assembly cleanly mapped to the original Rust source code.
+    * `debug = 0` and `strip = "symbols"` (primary release profile): Produces the cert-baseline release artifact without embedded debug symbols.
+    * `overflow-checks = true`: Forces the compiler to catch mathematical boundary violations during testing. The only exception is if a formal verification tool needs to analyze the unmitigated boundary directly.
+* **WCET Audit Artifact Note:** Worst-Case Execution Time (WCET) audits must compile a parallel, unstripped artifact under an approved audit profile so reviewers retain symbol-level visibility for timing analysis.
+* **Coverage and Traceability Note:** With `lto = false`, source-to-object traceability is intentionally simplified for structural coverage analysis; any future change to enable LTO requires an explicit impact assessment and updated object-code traceability strategy.
+* **Optional Performance Profile:** `lto = "thin"` is allowed only under a formally documented impact assessment approved within the change evidence package.
 * **Baseline Commands (Required Before and After Change):**
     * `cargo test --workspace` using the repository-approved deterministic target selection method.
     * `cargo kani -p verification`, or the repository-approved wrapper for Kani when target or model configuration must differ from final machine-code compilation.
