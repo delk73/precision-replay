@@ -13,38 +13,51 @@ Terminology used in this contract:
 ## 1. Deterministic Environment and Build Baseline
 
 * **Toolchain Lock:** All builds and verification runs must use the exact toolchain specified by root `rust-toolchain.toml`.
+* **Build Environment Isolation:** Tool execution must occur inside a cryptographically pinned, content-addressed environment baseline such as a locked Nix flake or pinned OCI image. Ad hoc host-environment execution is non-compliant unless an explicit exception record is attached to the change.
+* **Explicit Target Discipline:** Build and test commands that produce target artifacts must either:
+    * explicitly specify `--target <approved-target-triple>`, or
+    * invoke a repository-owned wrapper script that fixes the target deterministically.
+  Host fallback caused by omitted target selection is prohibited for target-bound validation.
 * **Deterministic Profiles:**
     * `panic = "abort"` for deterministic failure behavior.
     * `lto = "fat"` and `codegen-units = 1` for deterministic optimization behavior.
     * `debug = true` in release for repeatable symbol-level analysis and WCET auditability.
+    * `overflow-checks = true` is required in non-release validation profiles unless a documented proof obligation shows the check would mask the property under review.
+* **LTO Certification Note:** Because `lto = "fat"` can materially restructure generated object code, downstream structural coverage and source-to-object traceability must be addressed at the object-code level during formal certification activity.
 * **Baseline Commands (Required Before and After Change):**
-    * `cargo test --workspace`
-    * `cargo kani -p verification`
+    * `cargo test --workspace` using the repository-approved deterministic target selection method.
+    * `cargo kani -p verification`, or the repository-approved wrapper for Kani when target or model configuration must differ from final machine-code compilation.
+* **Artifact Capture:** Baseline and post-change command output must be preserved as static, machine-readable artifacts under a repository-defined evidence path.
 
 ---
 
 ## 2. Core Language and Safety Constraints
 
 * **No Std Runtime:** Core logic crates must remain `#![no_std]`.
+* **Memory Bounds:** Dynamic allocation through `alloc`, heap-backed collections, or custom runtime allocators is prohibited in safety-critical execution paths. Memory consumption must be statically bounded or otherwise bounded by a documented requirement and verification artifact.
 * **Unsafe Prohibition:** `#![forbid(unsafe_code)]` is mandatory for core and verification crates unless a formally approved exception process is added.
 * **Arithmetic Discipline:** `#![deny(clippy::arithmetic_side_effects)]` in core is mandatory.
+* **Panic Elimination:** Compile-time and lint-level controls must prohibit hidden panic paths in safety-critical code. At minimum, unwrap-style failure, unchecked indexing/slicing, placeholder panics, and equivalent latent panic mechanisms must be denied unless locally justified under an approved exception.
 * **No Blanket Suppressions:** File-wide `#![allow(clippy::arithmetic_side_effects)]` is prohibited.
-* **Localized Exceptions Only:** Any arithmetic lint exception must be function-scoped or expression-scoped and include a requirement reference plus rationale in adjacent comments.
+* **Localized Exceptions Only:** Any arithmetic or panic-related lint exception must be function-scoped or expression-scoped and include a requirement reference plus rationale in adjacent comments.
+* **Operator Control:** Safety-critical arithmetic must use explicitly bounded semantics such as checked, saturating, or otherwise requirement-defined operations. Reliance on default operator behavior is prohibited when overflow, underflow, divide-by-zero, or precision loss is part of the hazard analysis.
 
 ---
 
 ## 3. Requirements Traceability and Code Annotation
 
 * **Source-of-Truth Rule:** High-level and low-level requirements are maintained in-repo and linked directly to code via doc comments.
-* **Traceability Key Requirement:** Every externally used math primitive must include:
-    * `Low-Level Requirement` identifier.
+* **Requirement Schema:** Low-level requirements must use the standardized naming form `LLR-REPLAY-[MODULE]-[UNIQUE_ID]`.
+* **Traceability Key Requirement:** Every math primitive exposed across a public crate-level API boundary must include:
+    * `Low-Level Requirement` identifier matching the standardized schema.
     * `Verification Vector` identifier naming the proof/test harness.
+* **Traceability Extraction:** Verification runs must execute an automated extraction step that compiles code-level requirement markers into a centralized traceability artifact such as JSON or CSV. A missing or malformed artifact is a verification failure.
 * **No Untargeted Logic:** Code without requirement mapping and verification mapping is treated as non-compliant until either mapped or removed.
 
 Example:
 
 ```rust
-/// # Low-Level Requirement: LLR-REPLAY-MATH-ROUND
+/// # Low-Level Requirement: LLR-REPLAY-MATH-ROUND-001
 /// Deterministic rounding to nearest with ties-to-even in constant time.
 ///
 /// **Verification Vector:** `verification::proofs::verify_rounding_ties_to_even`
@@ -73,14 +86,15 @@ To avoid false abstraction boundaries while preserving testability:
 Each change follows a locked sequence. No step skipping:
 
 1. **Plan Gate:** Define one objective, one file scope, one validation set.
-2. **Baseline Gate:** Run required baseline commands and record outputs.
+2. **Baseline Gate:** Run required baseline commands and capture outputs as machine-readable artifacts.
 3. **Edit Gate:** Apply minimal change set only for approved objective.
-4. **Review Gate (Human):** Manually inspect all changed lines for requirement mapping, lint scope, and determinism impact.
-5. **Verification Gate:** Re-run required commands and compare to baseline.
-6. **Acceptance Gate (Human):** Explicit pass/fail decision with rationale.
-7. **Commit Gate:** Commit only after human acceptance note is written.
+4. **Review Gate (Verifier Mode):** Manually inspect all changed lines for requirement mapping, lint scope, determinism impact, and conformance to the `LLR-REPLAY-*` schema.
+5. **Verification Gate:** Re-run required commands, regenerate the centralized traceability artifact, and compare results to baseline artifacts.
+6. **Acceptance Gate (Verifier Mode):** Record an explicit pass/fail decision with rationale and structural review outcome.
+7. **Commit Gate:** Commit only after human acceptance note is written and the change record is complete.
 
-For single-developer DAL-overlap rigor, the same person must still perform role-separated checks in sequence (author mode, then verifier mode), with explicit checklist completion at each gate.
+For single-developer DAL-overlap rigor, the same person must still perform role-separated checks in sequence (author mode, then verifier mode), with an explicit cognitive context switch and checklist completion at each gate.
+Automated hooks may enforce gate formatting and artifact presence, but they do not replace the human verifier-mode review obligation.
 
 ---
 
@@ -88,10 +102,21 @@ For single-developer DAL-overlap rigor, the same person must still perform role-
 
 * **Immutable Provenance:** Each accepted change must reference exact commit SHA from `git rev-parse HEAD`.
 * **Mandatory Verification Evidence:** Any change touching mathematical behavior requires a passing `cargo kani -p verification` run attached to the change record.
+* **Commit Message Schema:** Each accepted change must use a structured commit message that captures, at minimum:
+    * objective,
+    * scope,
+    * baseline SHA,
+    * cargo test result,
+    * Kani verification result or justified non-applicability,
+    * verifier review note, and
+    * acceptance disposition.
+  Repository-local automation such as a `commit-msg` hook should reject commits that violate the schema.
 * **Merge Preconditions:**
-    * Baseline and post-change command outputs recorded.
+    * Baseline and post-change command outputs recorded as static artifacts.
     * Traceability keys present and correct.
+    * Centralized traceability artifact generated successfully and retained with the change evidence.
     * No prohibited blanket lint suppressions.
+    * Human verifier-mode review completed and recorded.
     * Human acceptance gate completed.
 * **Readiness Boundary:** Satisfying this contract produces compliance-ready evidence and disciplined implementation history. It does not, by itself, close all DO-178C DAL A objectives.
 
@@ -99,6 +124,8 @@ For single-developer DAL-overlap rigor, the same person must still perform role-
 
 ## 7. Operational Scope for Embedded Replay Appliance
 
-* Deterministic fixed-point math (`I64F64`) is the only accepted arithmetic substrate for safety-critical replay computations.
-* Hardware-facing PRU and embedded runner components must preserve deterministic behavior and bounded failure modes under malformed input and timing stress.
-* Platform validation (x86, ARM, RISC-V where applicable) must demonstrate bit-identical behavior for defined deterministic vectors.
+* **Arithmetic Substrate:** Deterministic fixed-point math (`I64F64`) is the only accepted arithmetic substrate for safety-critical replay computations.
+* **Precision Boundary Management:** Multiplication, division, conversion, and rounding operations must use explicit requirement-defined semantics for overflow handling, saturation, and rounding behavior. Intermediate precision loss or overflow assumptions must not be left implicit.
+* **Hardware Interface Isolation:** Hardware-facing PRU logic, embedded runner components, and register- or timing-dependent behavior must be isolated behind localized hardware abstraction boundaries. The core replay math engine must remain decoupled from hardware side effects and device-specific register models.
+* **Fault Containment:** Hardware-facing paths must preserve deterministic behavior and bounded failure modes under malformed input and timing stress.
+* **Platform Validation Bounds:** Platform validation on approved architectures must demonstrate bit-identical behavior for defined deterministic vectors. Where hardware execution is not available in the development loop, the surrogate execution environment and its limitations must be explicitly recorded.
