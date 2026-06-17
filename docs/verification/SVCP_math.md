@@ -19,12 +19,11 @@ Overflow trap behavior remains implemented by the core operators through `i128::
 *Traces to: LLR-REPLAY-MATH-OPS-001*
 
 ### SVCP-MATH-PRO-002: Multiplication Bounded Proof
-Status: Planned/deferred verification obligation.
+Status: Current active low-limb raw multiplication exactness coverage; full matrix and overflow coverage deferred.
 
-The verification harness shall check the multiplication kernel across the complete symbolic space of two `I64F64` values. The proof must guarantee:
-1. Complete intermediate overflow tracking before truncation.
-2. That any product exceeding the max/min bounds of `I64F64` forces a panic abort.
-3. Success states match the canonical mathematical expectation: $\text{Result} = (A \times B) \gg 64$.
+The verification harness `verification::proofs::verify_i64f64_multiplication_low_limb_exact_when_in_range` proves raw fixed-point multiplication exactness for symbolic `i64` operands widened to `i128`, covering the public low-limb non-overflowing multiplication path.
+
+Full multiplication matrix coverage, overflow-gate correspondence, panic/trap observation, and convergent multiplication behavior remain deferred.
 *Traces to: LLR-REPLAY-MATH-OPS-002*
 
 ### SVCP-MATH-PRO-003: Division Invariant Proof
