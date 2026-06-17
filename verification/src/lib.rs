@@ -9,6 +9,36 @@ pub mod proofs {
     const FRACTION_MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
     const HALF_SCALE: u128 = 0x8000_0000_0000_0000;
 
+    /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
+    /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
+    /// checked-addition result bits.
+    #[kani::proof]
+    pub fn verify_i64f64_addition_exact_when_in_range() {
+        let lhs_bits: i128 = kani::any();
+        let rhs_bits: i128 = kani::any();
+        let expected = lhs_bits.checked_add(rhs_bits);
+        kani::assume(expected.is_some());
+
+        let result = I64F64::from_bits(lhs_bits) + I64F64::from_bits(rhs_bits);
+
+        assert_eq!(result.to_bits(), expected.unwrap());
+    }
+
+    /// # Verification Vector: verify_i64f64_subtraction_exact_when_in_range
+    /// Proves that non-overflowing `I64F64` subtraction returns the exact `i128`
+    /// checked-subtraction result bits.
+    #[kani::proof]
+    pub fn verify_i64f64_subtraction_exact_when_in_range() {
+        let lhs_bits: i128 = kani::any();
+        let rhs_bits: i128 = kani::any();
+        let expected = lhs_bits.checked_sub(rhs_bits);
+        kani::assume(expected.is_some());
+
+        let result = I64F64::from_bits(lhs_bits) - I64F64::from_bits(rhs_bits);
+
+        assert_eq!(result.to_bits(), expected.unwrap());
+    }
+
     /// # Verification Vector: verify_accumulator_convergent_rounding_exhaustive
     /// Proves nearest-integer mapping across all fractional intervals and verifies
     /// that exact half-scale ties resolve toward the nearest even integer.

@@ -11,11 +11,11 @@ As independent human peer review is explicitly deferred under project criteria, 
 ## 2. Verification Primitives and Proof Bounds (SVCP-MATH-PRO)
 
 ### SVCP-MATH-PRO-001: Addition & Subtraction Soundness Proof
-Status: Planned/deferred verification obligation.
+Status: Current active exactness coverage; overflow trap observation deferred.
 
-The verification harness shall prove that for any two symbolic `i128` values mapped to `I64F64` structures ($A$ and $B$), the addition and subtraction operations satisfy the following criteria:
-1. If the sum ($A + B$) or difference ($A - B$) falls outside the legal bounds of a signed 128-bit integer, the operation must trigger a controlled runtime abort.
-2. If the operation does not overflow, it must return the exact bitwise arithmetic result.
+The verification harnesses `verification::proofs::verify_i64f64_addition_exact_when_in_range` and `verification::proofs::verify_i64f64_subtraction_exact_when_in_range` in `verification/src/lib.rs` prove that for any two symbolic `i128` values mapped to `I64F64` structures ($A$ and $B$), non-overflowing addition and subtraction return the exact bitwise arithmetic result.
+
+Overflow trap behavior remains implemented by the core operators through `i128::checked_add` / `i128::checked_sub` returning `None`, but end-to-end panic/trap verification is deferred.
 *Traces to: LLR-REPLAY-MATH-OPS-001*
 
 ### SVCP-MATH-PRO-002: Multiplication Bounded Proof
