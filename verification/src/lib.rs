@@ -9,6 +9,34 @@ pub mod proofs {
     const FRACTION_MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
     const HALF_SCALE: u128 = 0x8000_0000_0000_0000;
 
+    /// # Verification Vector: verify_i64f64_multiplication_tiny_fractional_products_truncate_to_zero
+    /// Proves that bounded symbolic `i32` raw operands whose absolute magnitudes
+    /// multiply below 2^64 return zero under raw `I64F64` multiplication.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_tiny_fractional_products_truncate_to_zero() {
+        let lhs_sample: i32 = kani::any();
+        let rhs_sample: i32 = kani::any();
+        let lhs_raw = lhs_sample as i128;
+        let rhs_raw = rhs_sample as i128;
+
+        let lhs_abs = if lhs_raw < 0 {
+            (-lhs_raw) as u128
+        } else {
+            lhs_raw as u128
+        };
+        let rhs_abs = if rhs_raw < 0 {
+            (-rhs_raw) as u128
+        } else {
+            rhs_raw as u128
+        };
+
+        kani::assume(lhs_abs * rhs_abs < (1u128 << I64F64::FRAC_BITS));
+
+        let actual = I64F64::from_bits(lhs_raw) * I64F64::from_bits(rhs_raw);
+
+        assert_eq!(actual, I64F64::from_bits(0));
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.
