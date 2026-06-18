@@ -6,8 +6,11 @@
 /precision-replay-sequester/
 **/*_sequestered/
 
+
 # OS and IDE Cruft
 .DS_Store
 .vscode/
 .idea/
 diff.txt
+.codex/
+AGENTS.md
