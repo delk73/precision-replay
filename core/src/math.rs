@@ -153,14 +153,19 @@ impl Mul for I64F64 {
 
         let (out_negative, ll, cross_lo, cross_hi, hh) = self.execute_mul_matrix(rhs);
 
-        // EXPONENTIAL OVERFLOW TRAP
-        if cross_hi != 0 || hh != 0 {
+        // HIGH-LIMB CAPACITY GATE AFTER 64-BIT TRUNCATION
+        if hh > 0xFFFF_FFFF_FFFF_FFFF {
             panic!("CRITICAL MATH EXCEPTION: Multiplicative Saturation");
         }
 
         // RAW TRUNCATION ALIGNMENT SHIFT
+        let cross_sum = (cross_hi << 64) | (cross_lo >> 64);
+        let hh_scaled = hh << 64;
         let ll_scaled = ll >> 64;
-        let final_abs_bits = match cross_lo.checked_add(ll_scaled) {
+        let final_abs_bits = match hh_scaled
+            .checked_add(cross_sum)
+            .and_then(|value| value.checked_add(ll_scaled))
+        {
             Some(val) => val,
             None => panic!("CRITICAL MATH EXCEPTION: Bit Pool Composition Failure"),
         };
@@ -320,6 +325,32 @@ mod tests {
         assert_eq!(round_ties_to_even(minus_three_quarters), -2);
         assert_eq!(round_ties_to_even(minus_one_and_half), -2);
         assert_eq!(round_ties_to_even(minus_two_and_half), -2);
+    }
+
+    // =========================================================================
+    // REQ TRACE: LLR-REPLAY-MATH-OPS-002 - RAW MULTIPLICATION TRUNCATION
+    // =========================================================================
+    #[test]
+    fn test_raw_mul_tiny_fractional_products_truncate_to_zero() {
+        let tiny_positive = I64F64::from_bits(1);
+        let tiny_negative = I64F64::from_bits(-1);
+        let zero = I64F64::from_bits(0);
+
+        assert_eq!(tiny_positive * tiny_positive, zero);
+        assert_eq!(tiny_negative * tiny_positive, zero);
+        assert_eq!(tiny_positive * tiny_negative, zero);
+        assert_eq!(tiny_negative * tiny_negative, zero);
+    }
+
+    #[test]
+    fn test_raw_mul_fixed_point_one_signs() {
+        let one = I64F64::from_bits(I64F64::SCALE);
+        let negative_one = I64F64::from_bits(-I64F64::SCALE);
+
+        assert_eq!(one * one, one);
+        assert_eq!(negative_one * one, negative_one);
+        assert_eq!(one * negative_one, negative_one);
+        assert_eq!(negative_one * negative_one, one);
     }
 
     // =========================================================================
