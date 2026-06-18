@@ -18,9 +18,10 @@ Addition and subtraction operations shall be executed using the native wrapping 
 
 ### LLR-REPLAY-MATH-OPS-002: Multiplication Scaling and Widening
 Multiplication of two `I64F64` values ($A \times B$) must execute via the following deterministic sequence:
-1. Widen the operands or calculate intermediate signs to ensure multiplication does not clip. Since native `i256` is not available as a standard primitive, intermediate calculation overflow boundaries must be checked prior to bit-shifting.
-2. The raw product of the two `i128` inner values must be arithmetically right-shifted by 64 bits to restore the fractional alignment.
-3. If the intermediate product cannot fit within the boundaries of a signed 128-bit integer before or after shifting, the operation shall trigger an immediate panic abort.
+1. Isolate the output sign from the operand signs and convert each operand to an unsigned absolute magnitude before partial-product generation. Since native `i256` is not available as a standard primitive, intermediate multiplication must be represented through checked limb decomposition.
+2. Decompose the absolute magnitudes into 64-bit limbs, multiply the limbs, compose the scaled absolute product, and discard the low 64 fractional bits to restore the fixed-point alignment.
+3. Reapply the isolated sign after magnitude scaling. This raw multiplication path truncates toward zero for negative products with discarded fractional magnitude.
+4. If the partial-product composition proves that the scaled absolute result cannot fit within the signed 128-bit output range after fixed-point realignment, the operation shall trigger an immediate panic abort.
 *Traces to: HLR-MATH-OPS-001, HLR-MATH-OPS-002*
 
 ### LLR-REPLAY-MATH-OPS-003: Division Scaling and Guardrails

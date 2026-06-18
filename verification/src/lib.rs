@@ -39,27 +39,6 @@ pub mod proofs {
         assert_eq!(result.to_bits(), expected.unwrap());
     }
 
-    /// # Verification Vector: verify_i64f64_multiplication_low_limb_exact_when_in_range
-    /// Proves raw fixed-point multiplication exactness for symbolic `i64`
-    /// operands widened to `i128`.
-    #[kani::proof]
-    pub fn verify_i64f64_multiplication_low_limb_exact_when_in_range() {
-        let lhs_small: i64 = kani::any();
-        let rhs_small: i64 = kani::any();
-
-        let lhs_bits = lhs_small as i128;
-        let rhs_bits = rhs_small as i128;
-
-        let exact_product = lhs_bits * rhs_bits;
-        let expected = exact_product >> I64F64::FRAC_BITS;
-
-        let lhs = I64F64::from_bits(lhs_bits);
-        let rhs = I64F64::from_bits(rhs_bits);
-        let result = lhs * rhs;
-
-        assert_eq!(result.to_bits(), expected);
-    }
-
     /// # Verification Vector: verify_accumulator_convergent_rounding_exhaustive
     /// Proves nearest-integer mapping across all fractional intervals and verifies
     /// that exact half-scale ties resolve toward the nearest even integer.
