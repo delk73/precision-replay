@@ -27,4 +27,4 @@ This document establishes the verified traceability link between the high-level 
 
 ## 2. Verification Alignment
 
-Every row specified in this matrix corresponds to either a targeted symbolic verification block in the verification crate (`verification/src/lib.rs`) or an implementation-local proof/test block in `core/src/math.rs`. This structure ensures that any compilation run executing `cargo kani -p verification` validates the externally visible proof constraints and their underlying documentation assertions concurrently.
+Rows in this matrix are requirement traceability entries with an explicit verification status. Some rows correspond to active symbolic proofs in `verification/src/lib.rs` or implementation-local tests in `core/src/math.rs`; other rows are first-class pending proof obligations tracked by the SVCP. In particular, `SVCP-MATH-PRO-002` for raw multiplication remains pending and must not be treated as active proof coverage until a matching harness is implemented.

@@ -19,11 +19,11 @@ Overflow trap behavior remains implemented by the core operators through `i128::
 *Traces to: LLR-REPLAY-MATH-OPS-001*
 
 ### SVCP-MATH-PRO-002: Multiplication Bounded Proof
-Status: Design corrected for raw truncation-toward-zero semantics; proof coverage pending.
+Status: Raw multiplication semantics corrected; proof coverage pending.
 
 Raw multiplication semantics are now defined by `LLR-REPLAY-MATH-OPS-002` as sign-isolated magnitude scaling with truncation toward zero for negative products with discarded fractional magnitude.
 
-Future proof coverage must verify this truncation-toward-zero behavior without substituting a weaker proof claim for symbolic low-limb coverage.
+Future proof target: verify truncation toward zero for raw multiplication without substituting a weaker proof claim for symbolic low-limb coverage.
 
 Full multiplication matrix coverage, overflow-gate correspondence, panic/trap observation, and convergent multiplication behavior remain deferred.
 *Traces to: LLR-REPLAY-MATH-OPS-002*
