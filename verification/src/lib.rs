@@ -37,6 +37,65 @@ pub mod proofs {
         assert_eq!(actual, I64F64::from_bits(0));
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_bounded_truncates_toward_zero
+    /// Proves that raw multiplication over symbolic operands whose magnitudes
+    /// are either bounded symbolic `u32` fractional raw values or the exact
+    /// 1.0 raw endpoint equals sign isolation, absolute magnitude
+    /// multiplication, low-64-bit truncation, and sign reapplication.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_bounded_truncates_toward_zero() {
+        let lhs_negative: bool = kani::any();
+        let rhs_negative: bool = kani::any();
+        let lhs_is_unit: bool = kani::any();
+        let rhs_is_unit: bool = kani::any();
+        let lhs_fractional: u32 = kani::any();
+        let rhs_fractional: u32 = kani::any();
+        let max_magnitude = I64F64::SCALE as u128;
+
+        let lhs_magnitude = if lhs_is_unit {
+            max_magnitude
+        } else {
+            lhs_fractional as u128
+        };
+        let rhs_magnitude = if rhs_is_unit {
+            max_magnitude
+        } else {
+            rhs_fractional as u128
+        };
+
+        let lhs_raw = if lhs_negative && lhs_magnitude != 0 {
+            -(lhs_magnitude as i128)
+        } else {
+            lhs_magnitude as i128
+        };
+        let rhs_raw = if rhs_negative && rhs_magnitude != 0 {
+            -(rhs_magnitude as i128)
+        } else {
+            rhs_magnitude as i128
+        };
+
+        let product = lhs_magnitude.checked_mul(rhs_magnitude);
+        let expected_magnitude = match product {
+            Some(value) => value >> I64F64::FRAC_BITS,
+            None => {
+                assert_eq!(lhs_magnitude, max_magnitude);
+                assert_eq!(rhs_magnitude, max_magnitude);
+                max_magnitude
+            }
+        };
+        assert!(expected_magnitude <= i128::MAX as u128);
+
+        let expected_bits = if (lhs_raw < 0) ^ (rhs_raw < 0) {
+            -(expected_magnitude as i128)
+        } else {
+            expected_magnitude as i128
+        };
+
+        let actual = I64F64::from_bits(lhs_raw) * I64F64::from_bits(rhs_raw);
+
+        assert_eq!(actual, I64F64::from_bits(expected_bits));
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.

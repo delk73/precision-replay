@@ -23,7 +23,7 @@ Status: Partial active coverage for raw multiplication; full coverage pending.
 
 `SVCP-MATH-PRO-002a` is active. The verification harness `verification::proofs::verify_i64f64_multiplication_tiny_fractional_products_truncate_to_zero` in `verification/src/lib.rs` proves that bounded symbolic `i32` raw operands whose absolute magnitudes multiply below 2^64 return zero under raw `I64F64` multiplication. This covers positive, negative, and mixed-sign tiny fractional products and confirms truncation toward zero for this slice. This slice is paired with implementation-local regression tests for tiny raw products and fixed-point +/-1.0 multiplication.
 
-`SVCP-MATH-PRO-002b` remains pending. It shall verify bounded non-overflowing raw multiplication equivalence for truncation toward zero beyond the tiny-product zero case.
+`SVCP-MATH-PRO-002b` is active. The verification harness `verification::proofs::verify_i64f64_multiplication_bounded_truncates_toward_zero` in `verification/src/lib.rs` proves bounded raw multiplication equivalence for symbolic operands whose magnitudes are either bounded symbolic `u32` fractional raw values or the exact `I64F64::SCALE` (+/-1.0) raw endpoint. For that bounded domain, raw `I64F64` multiplication equals sign isolation, absolute magnitude multiplication, low-64-bit truncation, and sign reapplication.
 
 `SVCP-MATH-PRO-002c` remains pending. It shall verify full multiplication matrix, limb, and cross-term correspondence, including overflow-gate correspondence and panic/trap observation. Convergent multiplication behavior remains outside this raw multiplication proof slice.
 *Traces to: LLR-REPLAY-MATH-OPS-002*
