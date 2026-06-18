@@ -347,7 +347,7 @@ mod tests {
     }
 
     // =========================================================================
-    // REQ TRACE: LLR-REPLAY-MATH-OPS-002 (Step 3) - EXPONENTIAL OVERFLOW GATES
+    // REQ TRACE: LLR-REPLAY-MATH-OPS-002 (Step 4) - EXPONENTIAL OVERFLOW GATES
     // =========================================================================
     #[cfg(kani)]
     #[kani::proof]
@@ -366,7 +366,7 @@ mod tests {
     }
 
     // =========================================================================
-    // REQ TRACE: HLR-MATH-OPS-002 / LLR-REPLAY-MATH-OPS-002 (Step 2) - CONVERGENT TIE-BREAK
+    // REQ TRACE: HLR-MATH-OPS-002 / LLR-REPLAY-MATH-OPS-004 - CONVERGENT TIE-BREAK
     // =========================================================================
     #[cfg(kani)]
     #[kani::proof]
