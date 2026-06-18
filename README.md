@@ -15,6 +15,24 @@ The current implemented surface is intentionally small:
 
 There is no CI pipeline, Makefile, or generated documentation index in this snapshot.
 
+## Public Replay Boundary
+
+`precision-replay` defines the public replay grammar: deterministic frame semantics, artifact format, retained evidence checks, and verification-facing contracts.
+
+In this repository, replay compatibility means that the same retained input artifact produces the same interpreted frame sequence, state transition expectations, and validation result under the public contract tests.
+
+Operational hardening is intentionally out of scope for the public core. Downstream profiles may add private deployment policy, hardware authority models, redundancy, fault containment, telemetry policy, or other operational-envelope protections, but those profiles must not redefine replay semantics.
+
+A downstream profile may change the operational envelope. It may not change:
+
+- frame meaning
+- deterministic state transition requirements
+- retained artifact grammar
+- evidence validation rules
+- public replay compatibility tests
+
+Public replay is the grammar. Hardened replay is a private operational profile. Downstream profiles consume the public contracts, continue passing the public replay contract tests, and do not backwash private deployment logic into the public architecture.
+
 ## Workspace Layout
 
 ```text
