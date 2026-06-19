@@ -29,7 +29,7 @@ Terminology used in this contract:
 * **Baseline Commands (Required Before and After Change):**
     * `cargo test --workspace` using the repository-approved deterministic target selection method.
     * `cargo kani -p verification`, or the repository-approved wrapper for Kani when target or model configuration must differ from final machine-code compilation.
-* **Artifact Capture:** Baseline and post-change command output must be preserved as static, machine-readable artifacts under a repository-defined evidence path.
+* **Artifact Capture:** Until CI exists, baseline and post-change command results are recorded in the structured commit message or PR record. Once CI exists, CI logs are the authoritative retained static artifacts for validation output. Repository-defined evidence paths are required only for release or certification-readiness evidence packages once that process exists.
 
 ---
 
@@ -53,7 +53,7 @@ Terminology used in this contract:
 * **Traceability Key Requirement:** Every math primitive exposed across a public crate-level API boundary must include:
     * `Low-Level Requirement` identifier matching the standardized schema.
     * `Verification Vector` identifier naming the proof/test harness.
-* **Traceability Extraction:** Verification runs must execute an automated extraction step that compiles code-level requirement markers into a centralized traceability artifact such as JSON or CSV. A missing or malformed artifact is a verification failure.
+* **Traceability Extraction:** Traceability keys must be present and correct for changes touching requirements, verification, or math behavior. Automated extraction into a centralized JSON/CSV artifact is a deferred evidence surface until the repository owns the generator and retention path. Once implemented, a missing or malformed generated artifact is a verification failure.
 * **No Untargeted Logic:** Code without requirement mapping and verification mapping is treated as non-compliant until either mapped or removed.
 
 Example:
@@ -88,10 +88,10 @@ To avoid false abstraction boundaries while preserving testability:
 Each change follows a locked sequence. No step skipping:
 
 1. **Plan Gate:** Define one objective, one file scope, one validation set.
-2. **Baseline Gate:** Run required baseline commands and capture outputs as machine-readable artifacts.
+2. **Baseline Gate:** Record the baseline SHA and required baseline command results in the structured commit message or PR record. Once CI/evidence automation exists, retained CI logs or repository-defined evidence artifacts satisfy this gate.
 3. **Edit Gate:** Apply minimal change set only for approved objective.
 4. **Review Gate (Verifier Mode):** Manually inspect all changed lines for requirement mapping, lint scope, determinism impact, and conformance to the `LLR-REPLAY-*` schema.
-5. **Verification Gate:** Re-run required commands, regenerate the centralized traceability artifact, and compare results to baseline artifacts.
+5. **Verification Gate:** Re-run required commands and record results in the structured commit message or PR record. For changes touching traceability-bearing surfaces, manually verify traceability keys are present and correct. Once generated traceability extraction exists, regenerate and retain the centralized traceability artifact.
 6. **Acceptance Gate (Verifier Mode):** Record an explicit pass/fail decision with rationale and structural review outcome.
 7. **Commit Gate:** Commit only after human acceptance note is written and the change record is complete.
 
@@ -102,8 +102,10 @@ Automated hooks may enforce gate formatting and artifact presence, but they do n
 
 ## 6. Evidence, Provenance, and Merge Criteria
 
-* **Immutable Provenance:** Each accepted change must reference exact commit SHA from `git rev-parse HEAD`.
-* **Mandatory Verification Evidence:** Any change touching mathematical behavior requires a passing `cargo kani -p verification` run attached to the change record.
+* **Immutable Provenance:** Each accepted change must reference the exact baseline commit SHA from `git rev-parse HEAD` before the change is made.
+
+* **Mandatory Validation Record:** Each accepted change must record the relevant validation command results in the structured commit message or PR record. At minimum, this includes applicable Cargo check/test/clippy results. Changes touching mathematical behavior, verification harnesses, or proof-surface documentation must also record a passing `cargo kani -p verification` result, or a justified non-applicability statement when Kani is not relevant.
+
 * **Commit Message Schema:** Each accepted change must use a structured commit message that captures, at minimum:
     * objective,
     * scope,
@@ -113,14 +115,28 @@ Automated hooks may enforce gate formatting and artifact presence, but they do n
     * verifier review note, and
     * acceptance disposition.
   Repository-local automation such as a `commit-msg` hook should reject commits that violate the schema.
-* **Merge Preconditions:**
-    * Baseline and post-change command outputs recorded as static artifacts.
-    * Traceability keys present and correct.
-    * Centralized traceability artifact generated successfully and retained with the change evidence.
+
+* **Active Local Merge Preconditions:**
+    * Baseline SHA recorded in the structured commit message.
+    * Required validation command results recorded in the structured commit message or PR record.
+    * `cargo kani -p verification` result recorded for mathematical behavior, verification harness, or proof-surface documentation changes, or explicitly marked non-applicable with reason.
+    * Traceability keys present and correct for changes touching requirements, verification, or math behavior.
     * No prohibited blanket lint suppressions.
     * Human verifier-mode review completed and recorded.
     * Human acceptance gate completed.
-* **Readiness Boundary:** Satisfying this contract produces compliance-ready evidence and disciplined implementation history. It does not, by itself, close all DO-178C DAL A objectives.
+
+* **CI Evidence Boundary:**
+    * Until CI exists, validation evidence is recorded in the structured commit message or PR record.
+    * Once CI exists, CI command logs are the authoritative retained static artifacts for validation output.
+    * Local evidence bundles are not required for ordinary PRs unless a release or certification-readiness process explicitly requires them.
+    * CI should enforce the same command surface currently recorded locally, including Cargo validation, Clippy, Kani where applicable, and commit-message/schema checks where practical.
+
+* **Deferred Evidence Surfaces:**
+    * Generated traceability extraction is deferred until the repository owns a generator and stable retention path.
+    * Release evidence packages are deferred until the repository owns a release evidence format and capture process.
+    * These deferred surfaces remain intended evidence-readiness controls, but they are not active local merge preconditions in this extraction MVP snapshot.
+
+* **Readiness Boundary:** Satisfying this contract produces disciplined implementation history and prepares the repository for compliance-oriented evidence automation. It does not, by itself, produce DO-178C DAL A compliance or close all DO-178C DAL A objectives.
 
 ---
 
