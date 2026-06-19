@@ -1,5 +1,3 @@
-#![allow(clippy::arithmetic_side_effects)]
-
 use core::ops::{Add, Div, Mul, Sub};
 
 /// A deterministic, platform-agnostic 128-bit fixed-point number
