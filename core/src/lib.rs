@@ -1,6 +1,7 @@
 #![no_std]
 #![forbid(unsafe_code)]
 #![deny(clippy::arithmetic_side_effects)]
+#![deny(clippy::allow_attributes)]
 
 //! Precision Replay Core
 //!
