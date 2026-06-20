@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show Rust toolchain
+        run: rustup show
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Check workspace
+        run: cargo check --workspace --locked
+
+      - name: Test workspace
+        run: cargo test --workspace --locked
+
+      - name: Lint workspace
+        run: cargo clippy --workspace --locked -- -D warnings
+
+      - name: Check core without default features
+        run: cargo check -p precision-replay-core --no-default-features --target thumbv7m-none-eabi --locked
+
+      - name: Check STM32 BSP without default features
+        run: cargo check -p bsp-stm32 --no-default-features --features stm32f446 --target thumbv7m-none-eabi --locked
+
+      - name: Check PRU BSP thumb surrogate
+        run: cargo check -p bsp-pru --no-default-features --target thumbv7m-none-eabi --locked
+
+      - name: Check STM32 runner without default features
+        run: cargo check -p stm32-runner --no-default-features --target thumbv7m-none-eabi --locked
+
+      - name: Check PRU runner thumb surrogate
+        run: cargo check -p pru-runner --no-default-features --target thumbv7m-none-eabi --locked
