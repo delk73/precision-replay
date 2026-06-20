@@ -9,7 +9,7 @@ pub struct I64F64(pub i128);
 impl I64F64 {
     pub const BITS: u32 = 128;
     pub const FRAC_BITS: u32 = 64;
-    pub const SCALE: i128 = 1 << Self::FRAC_BITS;
+    pub const SCALE: i128 = 1i128 << Self::FRAC_BITS;
 
     #[inline]
     pub const fn from_bits(bits: i128) -> Self {
@@ -49,10 +49,10 @@ impl I64F64 {
         let b_lo = abs_b & 0xFFFFFFFFFFFFFFFF;
 
         // 4. PARTIAL PRODUCTS
-        let ll = a_lo * b_lo;
-        let lh = a_lo * b_hi;
-        let hl = a_hi * b_lo;
-        let hh = a_hi * b_hi;
+        let ll = a_lo.wrapping_mul(b_lo);
+        let lh = a_lo.wrapping_mul(b_hi);
+        let hl = a_hi.wrapping_mul(b_lo);
+        let hh = a_hi.wrapping_mul(b_hi);
 
         // 5. CROSS TERM ACCUMULATION
         let cross_sum = match lh.checked_add(hl) {
@@ -83,14 +83,13 @@ impl I64F64 {
 
         // TIE-BREAKING ALIGNMENT (Round-Half-to-Even)
         let discarded_fraction = ll & 0xFFFFFFFFFFFFFFFF;
-        let tie_boundary = 0x8000000000000000u64;
+        let tie_boundary = 0x8000_0000_0000_0000u128;
 
         let mut scaled_result = cross_lo.checked_add(ll >> 64).unwrap();
 
-        // Branch-free evaluation selection masks
-        let is_above_half = ((tie_boundary as i64 - discarded_fraction as i64) >> 63) as u128;
-        let is_exact_half =
-            (((discarded_fraction ^ tie_boundary as u128) as i128).wrapping_sub(1) >> 127) as u128;
+        // Branch-free evaluation selection using explicit comparisons
+        let is_above_half = (discarded_fraction > tie_boundary) as u128;
+        let is_exact_half = (discarded_fraction == tie_boundary) as u128;
         let is_odd = scaled_result & 1;
 
         let round_up = is_above_half | (is_exact_half & is_odd);
@@ -104,9 +103,9 @@ impl I64F64 {
             panic!("CRITICAL MATH EXCEPTION: Capacity Bound Overflow");
         }
 
-        let final_signed = scaled_result as i128;
+        let final_signed = i128::try_from(scaled_result).unwrap();
         if out_negative {
-            Self(-final_signed)
+            Self(final_signed.checked_neg().unwrap())
         } else {
             Self(final_signed)
         }
@@ -129,8 +128,8 @@ pub fn round_ties_to_even(accum: I64F64) -> i128 {
 
     let is_above_half = (fractional_part > HALF_SCALE) as i128;
     let is_exact_half = (fractional_part == HALF_SCALE) as i128;
-    let is_integral_odd = integral_part & 1;
-    let increment = is_above_half | (is_exact_half & is_integral_odd);
+    let is_integral_odd = (integral_part & 1) != 0;
+    let increment = is_above_half | (is_exact_half & (is_integral_odd as i128));
 
     match integral_part.checked_add(increment) {
         Some(value) => value,
@@ -176,9 +175,9 @@ impl Mul for I64F64 {
             panic!("CRITICAL MATH EXCEPTION: Capacity Bound Overflow");
         }
 
-        let final_signed = final_abs_bits as i128;
+        let final_signed = i128::try_from(final_abs_bits).unwrap();
         if out_negative {
-            Self(-final_signed)
+            Self(final_signed.checked_neg().unwrap())
         } else {
             Self(final_signed)
         }
@@ -202,7 +201,10 @@ impl ConvergentAccumulator {
     #[inline]
     pub fn multiply_accumulate(&mut self, lhs: I64F64, rhs: I64F64) {
         let product = lhs.mul_convergent(rhs);
-        self.state = self.state + product;
+        self.state = match self.state.0.checked_add(product.0) {
+            Some(val) => I64F64(val),
+            None => panic!("CRITICAL MATH EXCEPTION: I64F64 Addition Overflow"),
+        };
     }
 
     /// Resolves the accumulator context, returning the stable, unified primitive.
