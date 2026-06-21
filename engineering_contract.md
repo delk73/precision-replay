@@ -13,23 +13,25 @@ Terminology used in this contract:
 ## 1. Deterministic Environment and Build Baseline
 
 * **Toolchain Lock:** All builds and verification runs must use the exact toolchain specified by root `rust-toolchain.toml`.
-* **Build Environment Isolation:** Tool execution must occur inside a cryptographically pinned, content-addressed environment baseline such as a locked Nix flake or pinned OCI image. Ad hoc host-environment execution is non-compliant unless an explicit exception record is attached to the change.
+* **Build Environment Baseline:** Active development uses the pinned Rust toolchain, locked dependencies where supported, the base CI runner, and explicit target selection for target-bound checks. A locked Nix, OCI, or equivalent content-addressed environment is a future release/certification control. It is not required for ordinary local merges until the repo provides the environment, CI path, and exception process.
 * **Explicit Target Discipline:** Build and test commands that produce target artifacts must either:
     * explicitly specify `--target <approved-target-triple>`, or
     * invoke a repository-owned wrapper script that fixes the target deterministically.
   Host fallback caused by omitted target selection is prohibited for target-bound validation.
-* **Deterministic Profiles:** To guarantee reproducible builds and straightforward structural coverage analysis, use these profile settings:
-    * `panic = "abort"`: Halts the system immediately on a critical error instead of attempting an unpredictable unwinding sequence.
-    * `lto = false` and `codegen-units = 1`: Disables parallel compilation and global optimization. This ensures identical builds every time and keeps the final assembly cleanly mapped to the original Rust source code.
-    * `debug = 0` and `strip = "symbols"` (primary release profile): Produces the cert-baseline release artifact without embedded debug symbols.
-    * `overflow-checks = true`: Forces the compiler to catch mathematical boundary violations during testing. The only exception is if a formal verification tool needs to analyze the unmitigated boundary directly.
+* **Deterministic Profiles:** Current `Cargo.toml` profile settings are the active best-effort build baseline for ordinary development and PR validation. They are not release-authority or certification-baseline evidence. Release, audit, and certification-readiness profiles must be explicitly named before they are used as evidence-bearing artifacts, and must document panic behavior, LTO policy, codegen units, debug-symbol policy, strip policy, and overflow-check behavior.
+* **Target Evidence-Bearing Profile Considerations:**
+    * `panic = "abort"` for bounded failure behavior.
+    * `codegen-units = 1` for deterministic code generation.
+    * LTO policy selected by documented traceability impact assessment.
+    * Debug-symbol and strip policy selected according to artifact role:
+        * stripped release artifact for deployment/release packaging,
+        * unstripped audit artifact for WCET, coverage, and object-code review.
+    * `overflow-checks = true` where applicable unless a formal verification activity intentionally analyzes the unmitigated boundary.
 * **WCET Audit Artifact Note:** Worst-Case Execution Time (WCET) audits must compile a parallel, unstripped artifact under an approved audit profile so reviewers retain symbol-level visibility for timing analysis.
-* **Coverage and Traceability Note:** With `lto = false`, source-to-object traceability is intentionally simplified for structural coverage analysis; any future change to enable LTO requires an explicit impact assessment and updated object-code traceability strategy.
-* **Optional Performance Profile:** `lto = "thin"` is allowed only under a formally documented impact assessment approved within the change evidence package.
-* **Baseline Commands (Required Before and After Change):**
-    * `cargo test --workspace` using the repository-approved deterministic target selection method.
-    * `cargo kani -p verification`, or the repository-approved wrapper for Kani when target or model configuration must differ from final machine-code compilation.
-* **Artifact Capture:** Until CI exists, baseline and post-change command results are recorded in the structured commit message or PR record. Once CI exists, CI logs are the authoritative retained static artifacts for validation output. Repository-defined evidence paths are required only for release or certification-readiness evidence packages once that process exists.
+* **Coverage and Traceability Note:** Changes to LTO, debug-symbol policy, stripping, or codegen-units in release/certification-readiness profiles require an explicit impact assessment and updated object-code traceability strategy.
+* **Optional Performance Profile:** Performance-oriented profile settings, including heavier LTO, are allowed only when separated from cert-baseline evidence or covered by a documented impact assessment.
+* **Repository-Supported Validation Surface:** Active validation consists of the base CI command set, local equivalents where applicable, explicit target-bound compile checks, and Kani for math, verification, or proof-surface changes.
+* **Artifact Capture:** Baseline SHA and required validation command results are recorded in the structured commit message or PR record. CI logs are authoritative only for the commands CI actually runs. Repository-defined evidence paths are required only for release or certification-readiness evidence packages once that process exists.
 
 ---
 
@@ -53,7 +55,8 @@ Terminology used in this contract:
 * **Traceability Key Requirement:** Every math primitive exposed across a public crate-level API boundary must include:
     * `Low-Level Requirement` identifier matching the standardized schema.
     * `Verification Vector` identifier naming the proof/test harness.
-* **Traceability Extraction:** Traceability keys must be present and correct for changes touching requirements, verification, or math behavior. Automated extraction into a centralized JSON/CSV artifact is a deferred evidence surface until the repository owns the generator and retention path. Once implemented, a missing or malformed generated artifact is a verification failure.
+* **Traceability Review:** The active traceability control is presence of traceability keys and manual review where applicable for changes touching requirements, verification, or math behavior.
+* **Traceability Extraction Target:** Automated extraction into a generated centralized JSON/CSV artifact is a target certification-readiness control, not an active local merge precondition. It becomes mandatory only after the repository owns the generator, retention path, and validation check. Once activated, a missing or malformed generated artifact is a verification failure.
 * **No Untargeted Logic:** Code without requirement mapping and verification mapping is treated as non-compliant until either mapped or removed.
 
 Example:
@@ -88,15 +91,15 @@ To avoid false abstraction boundaries while preserving testability:
 Each change follows a locked sequence. No step skipping:
 
 1. **Plan Gate:** Define one objective, one file scope, one validation set.
-2. **Baseline Gate:** Record the baseline SHA and required baseline command results in the structured commit message or PR record. Once CI/evidence automation exists, retained CI logs or repository-defined evidence artifacts satisfy this gate.
+2. **Baseline Gate:** Record the baseline SHA and required validation command results in the structured commit message or PR record. Once CI/evidence automation exists, retained CI logs or repository-defined evidence artifacts satisfy this gate.
 3. **Edit Gate:** Apply minimal change set only for approved objective.
 4. **Review Gate (Verifier Mode):** Manually inspect all changed lines for requirement mapping, lint scope, determinism impact, and conformance to the `LLR-REPLAY-*` schema.
-5. **Verification Gate:** Re-run required commands and record results in the structured commit message or PR record. For changes touching traceability-bearing surfaces, manually verify traceability keys are present and correct. Once generated traceability extraction exists, regenerate and retain the centralized traceability artifact.
+5. **Verification Gate:** Re-run required commands and record results in the structured commit message or PR record. For changes touching traceability-bearing surfaces, manually verify traceability keys are present and correct. Once the generated traceability target control is activated, regenerate and retain the centralized traceability artifact.
 6. **Acceptance Gate (Verifier Mode):** Record an explicit pass/fail decision with rationale and structural review outcome.
 7. **Commit Gate:** Commit only after human acceptance note is written and the change record is complete.
 
 For single-developer DAL-overlap rigor, the same person must still perform role-separated checks in sequence (author mode, then verifier mode), with an explicit cognitive context switch and checklist completion at each gate.
-Automated hooks may enforce gate formatting and artifact presence, but they do not replace the human verifier-mode review obligation.
+Automated hooks may enforce gate formatting and other repository-owned checks, but they do not replace the human verifier-mode review obligation.
 
 ---
 
@@ -105,6 +108,8 @@ Automated hooks may enforce gate formatting and artifact presence, but they do n
 * **Immutable Provenance:** Each accepted change must reference the exact baseline commit SHA from `git rev-parse HEAD` before the change is made.
 
 * **Mandatory Validation Record:** Each accepted change must record the relevant validation command results in the structured commit message or PR record. At minimum, this includes applicable Cargo check/test/clippy results. Changes touching mathematical behavior, verification harnesses, or proof-surface documentation must also record a passing `cargo kani -p verification` result, or a justified non-applicability statement when Kani is not relevant.
+
+* **Kani Authority Boundary:** The active Kani control applies to changes touching math behavior, verification harnesses, or proof-surface documentation. Other changes must record justified non-applicability when Kani is not relevant. Broader use of Kani as a release/proof authority gate is a target certification-readiness control, not an active local merge precondition. It becomes mandatory only after proof scope, runtime budget, CI/local execution path, and evidence retention are explicitly owned by the repository.
 
 * **Commit Message Schema:** Each accepted change must use a structured commit message that captures, at minimum:
     * objective,
@@ -126,15 +131,26 @@ Automated hooks may enforce gate formatting and artifact presence, but they do n
     * Human acceptance gate completed.
 
 * **CI Evidence Boundary:**
-    * Until CI exists, validation evidence is recorded in the structured commit message or PR record.
-    * Once CI exists, CI command logs are the authoritative retained static artifacts for validation output.
+    * Base CI proves only the commands it actually runs:
+        * `cargo fmt --all -- --check`
+        * `cargo check --workspace --locked`
+        * `cargo test --workspace --locked`
+        * `cargo clippy --workspace --locked -- -D warnings`
+        * compile-only embedded target checks currently present in `.github/workflows/ci.yml`.
+    * Base CI does not prove hardware execution, replay artifact capture, release evidence authority, generated traceability, artifact bundle validity, or Kani proof authority unless Kani is explicitly run and recorded.
+    * Validation evidence is recorded in the structured commit message or PR record.
+    * CI command logs are authoritative retained static artifacts only for validation output from commands CI actually runs.
     * Local evidence bundles are not required for ordinary PRs unless a release or certification-readiness process explicitly requires them.
-    * CI should enforce the same command surface currently recorded locally, including Cargo validation, Clippy, Kani where applicable, and commit-message/schema checks where practical.
+    * CI may be expanded later to enforce additional command surfaces, including Kani where applicable and commit-message/schema checks where practical, after the repository owns those automation paths.
 
 * **Deferred Evidence Surfaces:**
-    * Generated traceability extraction is deferred until the repository owns a generator and stable retention path.
-    * Release evidence packages are deferred until the repository owns a release evidence format and capture process.
+    * Generated traceability extraction is deferred until the repository owns a generator, stable retention path, and validation check.
+    * Release evidence packages are deferred until the repository owns a release evidence format, capture process, and bundle validator.
+    * Hardware-backed replay validation artifacts are deferred until the repository owns the stable hardware capture path and evidence retention process.
+    * Kani release/proof authority is deferred until the repository owns proof scope, runtime budget, CI/local execution path, and evidence retention.
     * These deferred surfaces remain intended evidence-readiness controls, but they are not active local merge preconditions in this extraction MVP snapshot.
+
+* **Release Evidence Boundary:** The active release-evidence control is structured commit or PR evidence plus recorded validation results. A retained release evidence package is a target certification-readiness control, not an active local merge precondition. It becomes mandatory only after the repository owns the release evidence format, capture process, and bundle validator.
 
 * **Readiness Boundary:** Satisfying this contract produces disciplined implementation history and prepares the repository for compliance-oriented evidence automation. It does not, by itself, produce DO-178C DAL A compliance or close all DO-178C DAL A objectives.
 
@@ -146,4 +162,4 @@ Automated hooks may enforce gate formatting and artifact presence, but they do n
 * **Precision Boundary Management:** Multiplication, division, conversion, and rounding operations must use explicit requirement-defined semantics for overflow handling, saturation, and rounding behavior. Intermediate precision loss or overflow assumptions must not be left implicit.
 * **Hardware Interface Isolation:** Hardware-facing PRU logic, embedded runner components, and register- or timing-dependent behavior must be isolated behind localized hardware abstraction boundaries. The core replay math engine must remain decoupled from hardware side effects and device-specific register models.
 * **Fault Containment:** Hardware-facing paths must preserve deterministic behavior and bounded failure modes under malformed input and timing stress.
-* **Platform Validation Bounds:** Platform validation on approved architectures must demonstrate bit-identical behavior for defined deterministic vectors. Where hardware execution is not available in the development loop, the surrogate execution environment and its limitations must be explicitly recorded.
+* **Platform Validation Bounds:** The active hardware validation control is compile-only embedded target checking unless hardware execution is explicitly performed and recorded. Hardware-backed replay validation with retained artifacts is a target certification-readiness control, not an active local merge precondition. Once activated, hardware-backed replay validation must demonstrate bit-identical behavior for defined deterministic vectors and retain the associated artifacts.
