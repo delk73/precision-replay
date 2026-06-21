@@ -1,6 +1,6 @@
 # Requirements Traceability Matrix — Fixed-Point Math Subsystem
 
-This document establishes the verified traceability link between the high-level and low-level mathematical requirements and their implementation blocks within the core mathematical kernel.
+This document records the current traceability links and verification status between the high-level and low-level mathematical requirements and their implementation blocks within the core mathematical kernel. It distinguishes active proofs, implementation-local tests, and pending proof obligations rather than asserting that every traceability row is fully verified.
 
 ---
 

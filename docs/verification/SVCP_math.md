@@ -3,7 +3,7 @@
 ## 1. Evaluation Methodology (SVCP-MATH-MET)
 
 ### SVCP-MATH-MET-001: Formal Symbolic Verification
-Mathematical correctness and safety invariants for the `I64F64` arithmetic primitives shall be verified via formal symbolic execution using the Kani Rust Verifier. Standard dynamic testing is deferred in favor of exhaustive property proofs covering the entire symbolic input space.
+Mathematical correctness and safety invariants for the stated `I64F64` verification properties shall be verified via formal symbolic execution using the Kani Rust Verifier. Kani symbolic verification is the formal proof mechanism for those properties. Implementation-local and sampled tests provide regression support, but they do not replace proof obligations or expand the active proof scope.
 
 ### SVCP-MATH-MET-002: Test Independence Override
 As independent human peer review is explicitly deferred under project criteria, verification soundness is achieved through mathematical proof generation. Proof definitions must strictly test for the absence of undefined behavior, runtime panics, and un-trapped arithmetic clipping.
