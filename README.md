@@ -13,7 +13,10 @@ The current implemented surface is intentionally small:
 - `docs` contains requirements, criteria, traceability, and verification planning material.
 - `engineering_contract.md` defines the repository engineering controls and evidence-readiness expectations.
 
-There is no CI pipeline, Makefile, or generated documentation index in this snapshot.
+Base CI exists under `.github/workflows/`, local hook/template setup exists through
+`.githooks/` and `scripts/install-hooks.sh`, and the repository includes a small
+`Makefile` for CI contract checks. There is no generated documentation index in
+this snapshot.
 
 ## Public Replay Boundary
 
@@ -37,6 +40,9 @@ Public replay is the grammar. Hardened replay is a private operational profile. 
 
 ```text
 .
+|-- .github/
+|   `-- workflows/       # base CI validation workflow
+|-- .githooks/            # repository-local git hooks
 |-- core/                 # no-std replay math crate
 |-- verification/         # Kani proof and verification crate
 |-- bsp/
@@ -45,9 +51,11 @@ Public replay is the grammar. Hardened replay is a private operational profile. 
 |-- runners/
 |   |-- pru-runner/       # PRU runner binary
 |   `-- stm32-runner/     # STM32 runner binary
+|-- scripts/              # hook setup and CI contract checks
 |-- docs/                 # requirements and verification documents
 |-- engineering_contract.md
 |-- Cargo.toml
+|-- Makefile
 `-- rust-toolchain.toml
 ```
 
@@ -56,19 +64,32 @@ Public replay is the grammar. Hardened replay is a private operational profile. 
 Use the toolchain pinned by `rust-toolchain.toml`.
 
 ```sh
-cargo check --workspace
-cargo test --workspace
-cargo kani -p verification
+cargo fmt --all -- --check
+cargo check --workspace --locked
+cargo test --workspace --locked
+cargo clippy --workspace --locked -- -D warnings
+cargo check -p precision-replay-core --no-default-features --target thumbv7m-none-eabi --locked
+cargo check -p bsp-stm32 --no-default-features --features stm32f446 --target thumbv7m-none-eabi --locked
+cargo check -p bsp-pru --no-default-features --target thumbv7m-none-eabi --locked
+cargo check -p stm32-runner --no-default-features --target thumbv7m-none-eabi --locked
+cargo check -p pru-runner --no-default-features --target thumbv7m-none-eabi --locked
 ```
 
 The root workspace currently sets `core` as the default member, so an unqualified `cargo test` exercises the core crate rather than every workspace member.
+
+Run Kani for math, verification, proof-surface, or contract changes where
+applicable:
+
+```sh
+cargo kani -p verification
+```
 
 ## Deferred Surfaces
 
 These surfaces are not yet established in this snapshot:
 
-- CI orchestration
-- repository-owned validation wrapper scripts
+- repository-owned validation wrapper scripts beyond current hook/setup and CI
+  contract helper scripts
 - evidence artifact capture paths
 - generated traceability extraction output
 - docs index
