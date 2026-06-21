@@ -1,6 +1,14 @@
 # precision-replay
 
-precision-replay is an early extraction MVP for deterministic replay foundations and embedded-platform integration experiments. The repository is being shaped for evidence-ready engineering discipline, but it does not currently claim DO-178C DAL A compliance.
+`precision-replay` is the public deterministic replay grammar and core extraction MVP.
+
+It is shaped for evidence-ready engineering discipline: explicit replay semantics,
+bounded validation surfaces, traceable implementation intent, and a clear boundary
+between public replay contracts and private hardened deployment profiles.
+
+This repository does not claim DO-178C DAL A compliance. `engineering_contract.md`
+is the evidence-boundary authority for current controls, deferred controls, and
+what must be recorded for accepted changes.
 
 ## Current Status
 
@@ -15,8 +23,7 @@ The current implemented surface is intentionally small:
 
 Base CI exists under `.github/workflows/`, local hook/template setup exists through
 `.githooks/` and `scripts/install-hooks.sh`, and the repository includes a small
-`Makefile` for CI contract checks. There is no generated documentation index in
-this snapshot.
+`Makefile` for CI contract checks.
 
 ## Public Replay Boundary
 
@@ -88,9 +95,6 @@ cargo kani -p verification
 
 These surfaces are not yet established in this snapshot:
 
-- repository-owned validation wrapper scripts beyond current hook/setup and CI
-  contract helper scripts
 - evidence artifact capture paths
 - generated traceability extraction output
-- docs index
 - release evidence packages
