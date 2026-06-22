@@ -1,6 +1,6 @@
 # Low-Level Requirements - MVP Readiness Evidence (LLR-MVP)
 
-These low-level requirements refine MVP readiness evidence expectations for the retained release evidence package, one hardware-backed replay validation artifact, and the MVP readiness statement. They define required contents and retained paths only; they do not implement artifact generation, bundle validation, hardware capture, generated traceability, certification evidence, or local merge gate changes.
+These low-level requirements refine the MVP readiness surface for the retained release evidence package, one hardware-backed replay validation artifact, and the MVP readiness statement. They define required contents and retained paths only; they do not implement artifact generation, bundle validation, hardware capture, generated traceability, certification evidence, or local merge gate changes.
 
 `engineering_contract.md` remains the workflow and evidence-boundary authority for active local merge preconditions, release evidence boundaries, hardware validation boundaries, and certification-readiness deferrals.
 
@@ -48,7 +48,7 @@ The MVP hardware-backed replay validation artifact shall include, at minimum:
 7. pass/fail verdict against the host/reference expectation, and
 8. retained artifact path.
 
-The artifact shall show execution through the embedded target path for one defined deterministic replay vector. It does not establish generalized hardware-backed replay validation coverage and shall not be treated as an ordinary local merge precondition unless `engineering_contract.md` is updated to activate that control.
+The artifact shall show execution through the embedded target path for one defined deterministic replay vector. It does not implement hardware capture or establish generalized hardware-backed replay validation coverage.
 *Traces to: HLR-MVP-HW-001*
 
 ## 3. MVP Readiness Statement (LLR-REPLAY-MVP-BND)
@@ -64,5 +64,5 @@ The MVP readiness statement shall explicitly identify:
 7. requirement and verification status references, and
 8. an explicit statement that certification compliance is not claimed.
 
-The readiness statement shall preserve the engineering contract boundary by distinguishing MVP readiness evidence from formal certification evidence, release authority, generalized hardware validation authority, generated traceability authority, and broader Kani proof authority.
+The readiness statement shall distinguish MVP readiness evidence from formal certification evidence, release authority, generalized hardware validation authority, generated traceability authority, broader Kani proof authority, and ordinary local merge gates.
 *Traces to: HLR-MVP-BND-001*
