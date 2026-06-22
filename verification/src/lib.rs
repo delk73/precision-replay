@@ -155,6 +155,31 @@ pub mod proofs {
         let _ = I64F64::from_bits(numerator_bits) / I64F64::from_bits(denominator_bits);
     }
 
+    /// # Verification Vector: verify_i64f64_division_i32_unit_denominators_match_shifted_reference
+    /// Proves that bounded symbolic `i32` raw numerators with unit
+    /// denominators match the explicit shifted-numerator reference quotient.
+    #[kani::proof]
+    pub fn verify_i64f64_division_i32_unit_denominators_match_shifted_reference() {
+        let numerator_sample: i32 = kani::any();
+        let denominator_negative: bool = kani::any();
+        let numerator_bits = numerator_sample as i128;
+        let denominator_bits = if denominator_negative { -1 } else { 1 };
+        let positive_shift_overflow = numerator_bits > 0 && numerator_bits.leading_zeros() < 64;
+        let negative_shift_overflow = numerator_bits < 0 && numerator_bits.leading_ones() < 64;
+
+        kani::assume(denominator_bits != 0);
+        kani::assume(!positive_shift_overflow);
+        kani::assume(!negative_shift_overflow);
+
+        let shifted_numerator = numerator_bits << I64F64::FRAC_BITS;
+        let expected = shifted_numerator.checked_div(denominator_bits);
+        kani::assume(expected.is_some());
+
+        let actual = I64F64::from_bits(numerator_bits) / I64F64::from_bits(denominator_bits);
+
+        assert_eq!(actual.to_bits(), expected.unwrap());
+    }
+
     /// # Verification Vector: verify_accumulator_convergent_rounding_exhaustive
     /// Proves nearest-integer mapping across all fractional intervals and verifies
     /// that exact half-scale ties resolve toward the nearest even integer.
