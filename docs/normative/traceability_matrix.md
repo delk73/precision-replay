@@ -33,7 +33,7 @@ These rows define MVP readiness requirements for release evidence packaging, one
 
 | MVP Readiness Surface | Requirement ID | Traceability / Status |
 | :--- | :--- | :--- |
-| Retained release evidence package | **HLR-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-002** | MVP readiness requirement. Defines retained validation outputs, applicable proof results, provenance, requirement/verification status references, manifest contents, and bundle validation expectations; package generation and bundle validator implementation remain outside this change. |
+| Retained and validated release evidence package | **HLR-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-002** | MVP readiness requirement. Defines retained validation outputs, applicable proof results, provenance, requirement/verification status references, manifest contents, and bundle validation expectations; package generation and bundle validator implementation remain outside this change. |
 | One retained hardware-backed replay validation artifact | **HLR-MVP-HW-001** / **LLR-REPLAY-MVP-HW-001** | MVP readiness requirement. Defines one retained deterministic replay artifact with embedded target execution, host/reference comparison, retained artifact path, and pass/fail verdict; generalized hardware replay coverage and local merge gating remain outside this row. |
 | MVP boundary and readiness statement | **HLR-MVP-BND-001** / **LLR-REPLAY-MVP-BND-001** | MVP readiness requirement. Defines explicit active-covered, bounded, deferred, and non-certified surfaces, including the statement that certification compliance is not claimed. |
 
