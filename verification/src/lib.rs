@@ -212,6 +212,42 @@ pub mod proofs {
         assert_eq!(actual.to_bits(), expected.unwrap());
     }
 
+    /// # Verification Vector: verify_i64f64_division_i32_power_of_two_denominators_match_shifted_reference
+    /// Proves that bounded symbolic `i32` raw numerators with signed
+    /// power-of-two denominator family {-8, -4, -2, -1, 1, 2, 4, 8} match the
+    /// explicit shifted-numerator reference quotient.
+    #[kani::proof]
+    pub fn verify_i64f64_division_i32_power_of_two_denominators_match_shifted_reference() {
+        let numerator_sample: i32 = kani::any();
+        let denominator_selector: u8 = kani::any();
+        let numerator_bits = numerator_sample as i128;
+        kani::assume(denominator_selector < 8);
+        let denominator_bits = match denominator_selector {
+            0 => -8,
+            1 => -4,
+            2 => -2,
+            3 => -1,
+            4 => 1,
+            5 => 2,
+            6 => 4,
+            _ => 8,
+        };
+        let positive_shift_overflow = numerator_bits > 0 && numerator_bits.leading_zeros() < 64;
+        let negative_shift_overflow = numerator_bits < 0 && numerator_bits.leading_ones() < 64;
+
+        kani::assume(denominator_bits != 0);
+        kani::assume(!positive_shift_overflow);
+        kani::assume(!negative_shift_overflow);
+
+        let shifted_numerator = numerator_bits << I64F64::FRAC_BITS;
+        let expected = shifted_numerator.checked_div(denominator_bits);
+        kani::assume(expected.is_some());
+
+        let actual = I64F64::from_bits(numerator_bits) / I64F64::from_bits(denominator_bits);
+
+        assert_eq!(actual.to_bits(), expected.unwrap());
+    }
+
     /// # Verification Vector: verify_accumulator_convergent_rounding_exhaustive
     /// Proves nearest-integer mapping across all fractional intervals and verifies
     /// that exact half-scale ties resolve toward the nearest even integer.
