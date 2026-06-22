@@ -6,8 +6,8 @@ These high-level requirements define the MVP readiness surface for release evide
 
 ## 1. Release Evidence Packaging (HLR-MVP-EVD)
 
-### HLR-MVP-EVD-001: Retained Release Evidence Package
-The MVP shall produce a retained release evidence package containing validation outputs, applicable proof results, provenance, and requirement/verification status references.
+### HLR-MVP-EVD-001: Retained and Validated Release Evidence Package
+The MVP shall produce a retained release evidence package that can be validated for required contents, provenance, applicable validation outputs, applicable proof results, and requirement/verification status references.
 
 ## 2. Hardware-Backed Replay Validation (HLR-MVP-HW)
 
