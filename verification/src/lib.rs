@@ -126,6 +126,35 @@ pub mod proofs {
         assert_eq!(result.to_bits(), expected.unwrap());
     }
 
+    /// # Verification Vector: verify_i64f64_division_denominator_zero_traps
+    /// Proves that raw `I64F64` division traps before division when the
+    /// denominator is zero, for any symbolic numerator.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_division_denominator_zero_traps() {
+        let numerator_bits: i128 = kani::any();
+
+        let _ = I64F64::from_bits(numerator_bits) / I64F64::from_bits(0);
+    }
+
+    /// # Verification Vector: verify_i64f64_division_numerator_shift_overflow_traps
+    /// Proves that raw `I64F64` division traps before the division step when a
+    /// symbolic numerator cannot be shifted left by 64 bits without overflowing
+    /// the signed 128-bit representation.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_division_numerator_shift_overflow_traps() {
+        let numerator_bits: i128 = kani::any();
+        let denominator_bits: i128 = kani::any();
+        let positive_shift_overflow = numerator_bits > 0 && numerator_bits.leading_zeros() < 64;
+        let negative_shift_overflow = numerator_bits < 0 && numerator_bits.leading_ones() < 64;
+
+        kani::assume(denominator_bits != 0);
+        kani::assume(positive_shift_overflow || negative_shift_overflow);
+
+        let _ = I64F64::from_bits(numerator_bits) / I64F64::from_bits(denominator_bits);
+    }
+
     /// # Verification Vector: verify_accumulator_convergent_rounding_exhaustive
     /// Proves nearest-integer mapping across all fractional intervals and verifies
     /// that exact half-scale ties resolve toward the nearest even integer.

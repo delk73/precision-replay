@@ -29,11 +29,13 @@ Status: Partial active coverage for raw multiplication; full coverage pending.
 *Traces to: LLR-REPLAY-MATH-OPS-002*
 
 ### SVCP-MATH-PRO-003: Division Invariant Proof
-Status: Planned/deferred verification obligation.
+Status: Partial active guard coverage; full division correctness pending.
 
-The verification harness shall perform symbolic execution on the division kernel to prove:
-1. Zero Denominator Trap: If the symbolic denominator $B == 0$, the operation aborts under all conditions.
-2. Shifting Overflow Protection: If left-shifting the numerator $A$ by 64 bits overflows the signed 128-bit space, the precondition must trap the failure and abort execution before the division step occurs.
+`SVCP-MATH-PRO-003a` is active. The verification harness `verification::proofs::verify_i64f64_division_denominator_zero_traps` in `verification/src/lib.rs` proves that raw `I64F64` division traps for any symbolic numerator when the denominator is zero. This is a guard-behavior proof slice only; Kani 0.58.0 observes the expected panic path but does not match the panic message.
+
+`SVCP-MATH-PRO-003b` is active. The verification harness `verification::proofs::verify_i64f64_division_numerator_shift_overflow_traps` in `verification/src/lib.rs` proves that raw `I64F64` division traps for symbolic numerators whose sign-extension bounds show that shifting left by 64 bits would overflow the signed 128-bit representation, with the denominator constrained nonzero so the shift-overflow guard is the exercised division guard.
+
+`SVCP-MATH-PRO-003c` remains pending. It shall verify full division arithmetic correspondence for the non-trapping domain, including quotient exactness/truncation semantics and checked integer-division overflow behavior. Implementation-local tests in `core/src/math.rs` remain regression support and do not close the full symbolic division proof obligation.
 *Traces to: LLR-REPLAY-MATH-OPS-003*
 
 ### SVCP-MATH-PRO-004: Convergent Integer Rounding Proof
