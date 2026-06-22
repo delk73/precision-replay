@@ -29,13 +29,13 @@ Status: Partial active coverage for raw multiplication; full coverage pending.
 *Traces to: LLR-REPLAY-MATH-OPS-002*
 
 ### SVCP-MATH-PRO-003: Division Invariant Proof
-Status: Partial active guard coverage; full division correctness pending.
+Status: Partial active guard coverage and bounded unit-denominator arithmetic coverage; full arbitrary-denominator division correctness pending.
 
 `SVCP-MATH-PRO-003a` is active. The verification harness `verification::proofs::verify_i64f64_division_denominator_zero_traps` in `verification/src/lib.rs` proves that raw `I64F64` division traps for any symbolic numerator when the denominator is zero. This is a guard-behavior proof slice only; Kani 0.58.0 observes the expected panic path but does not match the panic message.
 
 `SVCP-MATH-PRO-003b` is active. The verification harness `verification::proofs::verify_i64f64_division_numerator_shift_overflow_traps` in `verification/src/lib.rs` proves that raw `I64F64` division traps for symbolic numerators whose sign-extension bounds show that shifting left by 64 bits would overflow the signed 128-bit representation, with the denominator constrained nonzero so the shift-overflow guard is the exercised division guard.
 
-`SVCP-MATH-PRO-003c` remains pending. It shall verify full division arithmetic correspondence for the non-trapping domain, including quotient exactness/truncation semantics and checked integer-division overflow behavior. Implementation-local tests in `core/src/math.rs` remain regression support and do not close the full symbolic division proof obligation.
+`SVCP-MATH-PRO-003c` is active for bounded symbolic `i32` raw numerator coverage with unit denominators `{-1, 1}`. The verification harness `verification::proofs::verify_i64f64_division_i32_unit_denominators_match_shifted_reference` in `verification/src/lib.rs` proves non-trapping division arithmetic correspondence against the shifted-numerator reference quotient for that denominator family only. Arbitrary-denominator and full unbounded symbolic division arithmetic remain pending. Implementation-local tests in `core/src/math.rs` remain regression support and do not expand that proof scope.
 *Traces to: LLR-REPLAY-MATH-OPS-003*
 
 ### SVCP-MATH-PRO-004: Convergent Integer Rounding Proof
