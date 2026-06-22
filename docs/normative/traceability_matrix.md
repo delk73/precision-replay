@@ -25,6 +25,20 @@ This document records the current traceability links and verification status bet
 
 ---
 
-## 2. Verification Alignment
+## 2. MVP Readiness Requirements
+
+These rows define MVP readiness requirements for release evidence packaging, one retained hardware-backed replay validation artifact, and final MVP boundary/readiness status. They are documentation-level readiness requirements and do not claim DO-178C, DAL A, tool qualification, hardware qualification, or certification compliance.
+
+`engineering_contract.md` remains the workflow and evidence-boundary authority. These rows activate the listed items as MVP readiness requirements, but they do not implement release evidence package generation, bundle validation, hardware capture, generated traceability, certification evidence, broader Kani release/proof authority, or ordinary local merge preconditions.
+
+| MVP Readiness Surface | Requirement ID | Traceability / Status |
+| :--- | :--- | :--- |
+| Retained release evidence package | **HLR-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-002** | MVP readiness requirement. The package shall retain validation outputs, applicable proof results, provenance, and requirement/verification status references. Manifest contents and bundle validation expectations are defined in `docs/design/LLR_mvp.md`; package generation and bundle validator implementation remain outside this change. |
+| One retained hardware-backed replay validation artifact | **HLR-MVP-HW-001** / **LLR-REPLAY-MVP-HW-001** | MVP readiness requirement. The artifact shall show one defined deterministic replay vector executed through the embedded target path and matched against host/reference expectation, with retained artifact path and pass/fail verdict. Generalized hardware-backed replay validation remains bounded and is not promoted into an ordinary local merge precondition by this row. |
+| MVP boundary and readiness statement | **HLR-MVP-BND-001** / **LLR-REPLAY-MVP-BND-001** | MVP readiness requirement. The statement shall identify active-covered, bounded, deferred, and non-certified surfaces explicitly, and shall state that certification compliance is not claimed. The engineering contract remains the authority for workflow gates, evidence boundaries, and certification-readiness deferrals. |
+
+---
+
+## 3. Verification Alignment
 
 Rows in this matrix are requirement traceability entries with an explicit verification status. Some rows correspond to active symbolic proofs in `verification/src/lib.rs` or implementation-local tests in `core/src/math.rs`; other rows are first-class pending proof obligations tracked by the SVCP. For raw multiplication, `SVCP-MATH-PRO-002a` is active only for tiny fractional truncation-to-zero behavior, and `SVCP-MATH-PRO-002b` is active only for bounded `u32` fractional raw operands plus the exact whole-unit raw endpoint. Full limb/cross-term correspondence and overflow-gate proof coverage remain pending under `SVCP-MATH-PRO-002c`. For division, `SVCP-MATH-PRO-003a` and `SVCP-MATH-PRO-003b` are active only for the bounded Kani guard slice covering divide-by-zero and numerator shift-overflow traps mapped to `LLR-REPLAY-MATH-OPS-003`; full symbolic division arithmetic remains pending under `SVCP-MATH-PRO-003c`, and implementation-local division tests do not expand that proof scope.
