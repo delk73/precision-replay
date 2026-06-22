@@ -1,0 +1,20 @@
+# High-Level Requirements - MVP Readiness Evidence (HLR-MVP)
+
+These high-level requirements define MVP readiness evidence expectations for release evidence packaging, one retained hardware-backed replay validation artifact, and explicit MVP boundary status. They do not assert DO-178C, DAL A, tool qualification, hardware qualification, or certification compliance.
+
+`engineering_contract.md` remains the workflow and evidence-boundary authority. These requirements define what the MVP readiness surface shall contain once prepared; they do not promote release evidence packaging, generated traceability, hardware-backed replay validation, or broader Kani release/proof authority into ordinary local merge preconditions.
+
+## 1. Release Evidence Packaging (HLR-MVP-EVD)
+
+### HLR-MVP-EVD-001: Retained Release Evidence Package
+The MVP shall produce a retained release evidence package containing validation outputs, applicable proof results, provenance, and requirement/verification status references.
+
+## 2. Hardware-Backed Replay Validation (HLR-MVP-HW)
+
+### HLR-MVP-HW-001: Retained Hardware-Backed Replay Artifact
+The MVP shall include one retained hardware-backed replay validation artifact showing a defined deterministic replay vector executed through the embedded target path and matched against host/reference expectation.
+
+## 3. Boundary and Certification Status (HLR-MVP-BND)
+
+### HLR-MVP-BND-001: Explicit MVP Boundary Statement
+The MVP shall state active-covered, bounded, deferred, and non-certified surfaces explicitly.
