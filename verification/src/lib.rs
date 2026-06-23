@@ -229,6 +229,50 @@ pub mod proofs {
         assert_eq!(actual.to_bits(), expected_bits);
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_bounded_ll_carry_contribution
+    /// Proves bounded low-limb carry contribution from the public raw
+    /// multiplication path.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_bounded_ll_carry_contribution() {
+        let lhs_negative: bool = kani::any();
+        let rhs_negative: bool = kani::any();
+
+        let lhs_lo = 1u128 << 63;
+        let rhs_lo_sample: u16 = kani::any();
+        let rhs_lo = rhs_lo_sample as u128;
+
+        let lhs_magnitude = lhs_lo;
+        let rhs_magnitude = rhs_lo;
+
+        let lhs_bits = if lhs_negative && lhs_magnitude != 0 {
+            -(lhs_magnitude as i128)
+        } else {
+            lhs_magnitude as i128
+        };
+        let rhs_bits = if rhs_negative && rhs_magnitude != 0 {
+            -(rhs_magnitude as i128)
+        } else {
+            rhs_magnitude as i128
+        };
+
+        let ll = lhs_lo * rhs_lo;
+        let expected_abs = ll >> I64F64::FRAC_BITS;
+
+        assert!(expected_abs <= i128::MAX as u128);
+
+        let expected_negative =
+            (lhs_negative && lhs_magnitude != 0) ^ (rhs_negative && rhs_magnitude != 0);
+        let expected_bits = if expected_negative {
+            -(expected_abs as i128)
+        } else {
+            expected_abs as i128
+        };
+
+        let actual = I64F64::from_bits(lhs_bits) * I64F64::from_bits(rhs_bits);
+
+        assert_eq!(actual.to_bits(), expected_bits);
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.
