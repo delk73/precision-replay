@@ -111,6 +111,20 @@ pub mod proofs {
         assert_eq!(result.to_bits(), expected.unwrap());
     }
 
+    /// # Verification Vector: verify_i64f64_addition_overflow_traps
+    /// Proves that overflowing `I64F64` addition traps when `i128` checked
+    /// addition reports overflow.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_addition_overflow_traps() {
+        let lhs_bits: i128 = kani::any();
+        let rhs_bits: i128 = kani::any();
+
+        kani::assume(lhs_bits.checked_add(rhs_bits).is_none());
+
+        let _ = I64F64::from_bits(lhs_bits) + I64F64::from_bits(rhs_bits);
+    }
+
     /// # Verification Vector: verify_i64f64_subtraction_exact_when_in_range
     /// Proves that non-overflowing `I64F64` subtraction returns the exact `i128`
     /// checked-subtraction result bits.
@@ -124,6 +138,20 @@ pub mod proofs {
         let result = I64F64::from_bits(lhs_bits) - I64F64::from_bits(rhs_bits);
 
         assert_eq!(result.to_bits(), expected.unwrap());
+    }
+
+    /// # Verification Vector: verify_i64f64_subtraction_overflow_traps
+    /// Proves that overflowing `I64F64` subtraction traps when `i128` checked
+    /// subtraction reports overflow.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_subtraction_overflow_traps() {
+        let lhs_bits: i128 = kani::any();
+        let rhs_bits: i128 = kani::any();
+
+        kani::assume(lhs_bits.checked_sub(rhs_bits).is_none());
+
+        let _ = I64F64::from_bits(lhs_bits) - I64F64::from_bits(rhs_bits);
     }
 
     /// # Verification Vector: verify_i64f64_division_denominator_zero_traps

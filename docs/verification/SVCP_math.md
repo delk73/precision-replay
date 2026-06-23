@@ -11,11 +11,11 @@ As independent human peer review is explicitly deferred under project criteria, 
 ## 2. Verification Primitives and Proof Bounds (SVCP-MATH-PRO)
 
 ### SVCP-MATH-PRO-001: Addition & Subtraction Soundness Proof
-Status: Current active exactness coverage; overflow trap observation deferred.
+Status: Active exactness coverage and active overflow trap observation.
 
 The verification harnesses `verification::proofs::verify_i64f64_addition_exact_when_in_range` and `verification::proofs::verify_i64f64_subtraction_exact_when_in_range` in `verification/src/lib.rs` prove that for any two symbolic `i128` values mapped to `I64F64` structures ($A$ and $B$), non-overflowing addition and subtraction return the exact bitwise arithmetic result.
 
-Overflow trap behavior remains implemented by the core operators through `i128::checked_add` / `i128::checked_sub` returning `None`, but end-to-end panic/trap verification is deferred.
+The verification harnesses `verification::proofs::verify_i64f64_addition_overflow_traps` and `verification::proofs::verify_i64f64_subtraction_overflow_traps` in `verification/src/lib.rs` observe panic/trap behavior when `i128::checked_add` or `i128::checked_sub` return `None`. These trap proofs do not claim panic message matching. Implementation-local add/sub tests remain regression support unless paired with Kani proof coverage.
 *Traces to: LLR-REPLAY-MATH-OPS-001*
 
 ### SVCP-MATH-PRO-002: Multiplication Proof Slices
