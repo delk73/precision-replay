@@ -176,6 +176,59 @@ pub mod proofs {
         assert_eq!(actual.to_bits(), expected_bits);
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_bounded_cross_sum_composition
+    /// Proves bounded fixed non-unit high-limb two-term cross-sum composition
+    /// over the public raw multiplication path.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_bounded_cross_sum_composition() {
+        let lhs_negative: bool = kani::any();
+        let rhs_negative: bool = kani::any();
+        let lhs_hi = 2u16;
+        let rhs_hi = 2u16;
+        let lhs_lo: u16 = kani::any();
+        let rhs_lo: u16 = kani::any();
+
+        let lhs_magnitude = ((lhs_hi as u128) << I64F64::FRAC_BITS) | lhs_lo as u128;
+        let rhs_magnitude = ((rhs_hi as u128) << I64F64::FRAC_BITS) | rhs_lo as u128;
+
+        let lhs_bits = if lhs_negative && lhs_magnitude != 0 {
+            -(lhs_magnitude as i128)
+        } else {
+            lhs_magnitude as i128
+        };
+        let rhs_bits = if rhs_negative && rhs_magnitude != 0 {
+            -(rhs_magnitude as i128)
+        } else {
+            rhs_magnitude as i128
+        };
+
+        let ll = (lhs_lo as u128) * (rhs_lo as u128);
+        let lh = (lhs_lo as u128) * (rhs_hi as u128);
+        let hl = (lhs_hi as u128) * (rhs_lo as u128);
+        let hh = (lhs_hi as u128) * (rhs_hi as u128);
+
+        assert_eq!(ll >> I64F64::FRAC_BITS, 0);
+
+        let cross_sum = lh.checked_add(hl).unwrap();
+        let expected_abs = (hh << I64F64::FRAC_BITS)
+            .checked_add(cross_sum)
+            .and_then(|value| value.checked_add(ll >> I64F64::FRAC_BITS))
+            .unwrap();
+        assert!(expected_abs <= i128::MAX as u128);
+
+        let expected_negative =
+            (lhs_negative && lhs_magnitude != 0) ^ (rhs_negative && rhs_magnitude != 0);
+        let expected_bits = if expected_negative {
+            -(expected_abs as i128)
+        } else {
+            expected_abs as i128
+        };
+
+        let actual = I64F64::from_bits(lhs_bits) * I64F64::from_bits(rhs_bits);
+
+        assert_eq!(actual.to_bits(), expected_bits);
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.
