@@ -96,6 +96,46 @@ pub mod proofs {
         assert_eq!(actual, I64F64::from_bits(expected_bits));
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_bounded_lh_cross_term_correspondence
+    /// Proves bounded fixed non-unit high-limb single-cross-term raw
+    /// multiplication correspondence for the low-limb-by-high-limb public path.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_bounded_lh_cross_term_correspondence() {
+        let lhs_negative: bool = kani::any();
+        let rhs_negative: bool = kani::any();
+        let lhs_lo: u16 = kani::any();
+        let rhs_hi = 2u16;
+
+        let lhs_magnitude = lhs_lo as u128;
+        let rhs_magnitude = (rhs_hi as u128) << I64F64::FRAC_BITS;
+
+        let lhs_bits = if lhs_negative && lhs_magnitude != 0 {
+            -(lhs_magnitude as i128)
+        } else {
+            lhs_magnitude as i128
+        };
+        let rhs_bits = if rhs_negative && rhs_magnitude != 0 {
+            -(rhs_magnitude as i128)
+        } else {
+            rhs_magnitude as i128
+        };
+
+        let expected_abs = (lhs_lo as u128) * (rhs_hi as u128);
+        assert!(expected_abs <= i128::MAX as u128);
+
+        let expected_negative =
+            (lhs_negative && lhs_magnitude != 0) ^ (rhs_negative && rhs_magnitude != 0);
+        let expected_bits = if expected_negative {
+            -(expected_abs as i128)
+        } else {
+            expected_abs as i128
+        };
+
+        let actual = I64F64::from_bits(lhs_bits) * I64F64::from_bits(rhs_bits);
+
+        assert_eq!(actual.to_bits(), expected_bits);
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.
