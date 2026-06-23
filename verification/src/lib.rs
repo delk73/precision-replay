@@ -386,6 +386,18 @@ pub mod proofs {
         assert_eq!(actual.to_bits(), expected_bits);
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_hh_overflow_gate_traps
+    /// Proves that a bounded public raw multiplication case whose high-high
+    /// partial product exceeds the scaled-result gate traps instead of wrapping.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_multiplication_hh_overflow_gate_traps() {
+        let lhs = I64F64::from_bits(i128::MAX);
+        let rhs = I64F64::from_bits(i128::MAX);
+
+        let _ = lhs * rhs;
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.
