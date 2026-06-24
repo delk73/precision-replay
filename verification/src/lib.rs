@@ -410,6 +410,18 @@ pub mod proofs {
         let _ = lhs * rhs;
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_signed_min_capacity_boundary_allowed
+    /// Proves that the unique signed minimum-capacity multiplication boundary is
+    /// allowed when the final magnitude is exactly `1 << 127` and the result sign is negative.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_signed_min_capacity_boundary_allowed() {
+        let min = I64F64::from_bits(i128::MIN);
+        let one = I64F64::from_bits(I64F64::SCALE);
+
+        assert_eq!((min * one).to_bits(), i128::MIN);
+        assert_eq!((one * min).to_bits(), i128::MIN);
+    }
+
     /// # Verification Vector: verify_i64f64_multiplication_cross_sum_overflow_unreachable_for_public_operands
     /// Proves that public raw `I64F64` operands cannot reach cross-sum
     /// overflow when composing multiplication cross terms.
