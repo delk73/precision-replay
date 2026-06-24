@@ -410,6 +410,41 @@ pub mod proofs {
         let _ = lhs * rhs;
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_cross_sum_overflow_unreachable_for_public_operands
+    /// Proves that public raw `I64F64` operands cannot reach cross-sum
+    /// overflow when composing multiplication cross terms.
+    #[kani::proof]
+    pub fn verify_i64f64_multiplication_cross_sum_overflow_unreachable_for_public_operands() {
+        let lhs_bits: i128 = kani::any();
+        let rhs_bits: i128 = kani::any();
+
+        let lhs_abs = if lhs_bits == i128::MIN {
+            1u128 << 127
+        } else if lhs_bits < 0 {
+            (-lhs_bits) as u128
+        } else {
+            lhs_bits as u128
+        };
+
+        let rhs_abs = if rhs_bits == i128::MIN {
+            1u128 << 127
+        } else if rhs_bits < 0 {
+            (-rhs_bits) as u128
+        } else {
+            rhs_bits as u128
+        };
+
+        let lhs_hi = lhs_abs >> I64F64::FRAC_BITS;
+        let lhs_lo = lhs_abs & ((1u128 << I64F64::FRAC_BITS) - 1);
+        let rhs_hi = rhs_abs >> I64F64::FRAC_BITS;
+        let rhs_lo = rhs_abs & ((1u128 << I64F64::FRAC_BITS) - 1);
+
+        let lh = lhs_lo * rhs_hi;
+        let hl = lhs_hi * rhs_lo;
+
+        assert!(lh.checked_add(hl).is_some());
+    }
+
     /// # Verification Vector: verify_i64f64_addition_exact_when_in_range
     /// Proves that non-overflowing `I64F64` addition returns the exact `i128`
     /// checked-addition result bits.
