@@ -422,6 +422,30 @@ pub mod proofs {
         assert_eq!((one * min).to_bits(), i128::MIN);
     }
 
+    /// # Verification Vector: verify_i64f64_multiplication_negative_signed_capacity_exceedance_traps
+    /// Proves that a public raw multiplication result just below the signed
+    /// minimum-capacity boundary traps instead of producing an unrepresentable value.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_multiplication_negative_signed_capacity_exceedance_traps() {
+        let min = I64F64::from_bits(i128::MIN);
+        let just_over_one = I64F64::from_bits(I64F64::SCALE + 1);
+
+        let _ = min * just_over_one;
+    }
+
+    /// # Verification Vector: verify_i64f64_multiplication_negative_signed_capacity_exceedance_traps_commuted
+    /// Proves that the same negative signed-capacity exceedance traps when the
+    /// operand order is reversed.
+    #[kani::proof]
+    #[kani::should_panic]
+    pub fn verify_i64f64_multiplication_negative_signed_capacity_exceedance_traps_commuted() {
+        let min = I64F64::from_bits(i128::MIN);
+        let just_over_one = I64F64::from_bits(I64F64::SCALE + 1);
+
+        let _ = just_over_one * min;
+    }
+
     /// # Verification Vector: verify_i64f64_multiplication_cross_sum_overflow_unreachable_for_public_operands
     /// Proves that public raw `I64F64` operands cannot reach cross-sum
     /// overflow when composing multiplication cross terms.
