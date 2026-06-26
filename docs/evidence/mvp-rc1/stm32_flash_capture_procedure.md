@@ -18,7 +18,7 @@ It does not define a generalized replay protocol, broad board-support procedure,
 - ST-Link probe visible to the host.
 - Serial device visible as `/dev/ttyACM0`.
 - Serial settings: `115200 8N1`.
-- Local tools available: `cargo`, `llvm-objcopy`, `st-info`, `st-flash`, and a serial capture tool such as `picocom`.
+- Local tools available: `cargo`, `llvm-objcopy`, `st-info`, `st-flash`, `stty`, `timeout`, `cat`, and `tee`.
 
 Probe check:
 
@@ -26,7 +26,7 @@ Probe check:
 st-info --probe
 ```
 
-The probe output shall identify an STM32F446 target before flashing.
+The probe output should identify an STM32F446 target before ordinary flashing. If probe or ordinary flash fails with SWD attach/connect errors, the reset-under-flash path may be used. In that case, the `st-flash --connect-under-reset --reset write ...` output must identify STM32F446 before the flash result is accepted.
 
 ## 4. Build Firmware
 
@@ -60,19 +60,38 @@ Flash the binary image at the STM32F446 flash origin:
 st-flash write target/thumbv7m-none-eabi/debug/stm32-runner.bin 0x08000000
 ```
 
-## 7. Capture `/dev/ttyACM0`
-
-Open the ST-Link virtual COM port with `115200 8N1` settings and retain the emitted line for the next commit.
-
-One local capture command is:
+If `st-info --probe` or ordinary `st-flash write ...` fails with SWD attach or connect errors, use reset-under-flash with the same repo-local `stm32-runner` binary image:
 
 ```sh
-picocom --baud 115200 --databits 8 --parity n --stopbits 1 --imap crcrlf --logfile docs/evidence/mvp-rc1/hardware_replay_transcript.txt /dev/ttyACM0
+st-flash --connect-under-reset --reset write target/thumbv7m-none-eabi/debug/stm32-runner.bin 0x08000000
 ```
 
-Reset the STM32F446 target after opening the serial session if the line was emitted before capture started.
+Do not use the historical `precision-signal` binary path:
+
+```text
+target/thumbv7em-none-eabihf/debug/replay-fw-f446.bin
+```
+
+Successful target identification or flash does not itself create the retained hardware artifact. UART capture begins only after firmware flash succeeds.
+
+## 7. Capture `/dev/ttyACM0`
+
+Configure the ST-Link virtual COM port for `115200 8N1` and retain the emitted line for the later artifact-retention commit.
+
+One local capture flow is:
+
+```sh
+stty -F /dev/ttyACM0 115200 cs8 -cstopb -parenb raw -echo
+timeout 10 cat /dev/ttyACM0 | tee docs/evidence/mvp-rc1/hardware_replay_transcript.txt
+```
+
+Start the capture command before resetting the STM32F446 target.
+
+Reset the STM32F446 target after the capture command is running if the line was emitted before capture started.
 
 Stop capture after the expected line is present in the transcript.
+
+The retained transcript must contain target output captured from `/dev/ttyACM0`; do not manually synthesize or edit the expected result into the transcript.
 
 ## 8. Expected Result
 
@@ -90,7 +109,7 @@ FAIL if the transcript is missing, the target identity is not STM32F446, the ser
 
 ## 10. Retained Artifact Path For Next Commit
 
-Commit 5 shall retain the hardware artifact and transcript at:
+The later artifact-retention commit shall retain the hardware artifact and transcript at:
 
 - `docs/evidence/mvp-rc1/hardware_replay_artifact.md`
 - `docs/evidence/mvp-rc1/hardware_replay_transcript.txt`
