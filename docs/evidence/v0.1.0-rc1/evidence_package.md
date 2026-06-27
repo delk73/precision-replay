@@ -16,19 +16,22 @@ This is a candidate-specific evidence package. It is not a certification package
 
 ## 3. Hardware Evidence Status
 
-No retained `v0.1.0-rc1` hardware replay artifact is claimed by this package yet.
+This package retains one `v0.1.0-rc1` STM32F446 hardware replay artifact.
 
-The previous retained raw transcript was captured with the historical `mvp-rc1` firmware payload label. That transcript is not rewritten or reused as `v0.1.0-rc1` evidence.
+The previous retained raw transcript was captured with the historical `mvp-rc1` firmware payload label. That transcript was not rewritten or reused as `v0.1.0-rc1` evidence.
 
-A new STM32F446 recapture is required after the firmware payload label change, using the procedure at `docs/evidence/v0.1.0-rc1/stm32_flash_capture_procedure.md`.
+The retained `v0.1.0-rc1` capture is recorded in `docs/evidence/v0.1.0-rc1/hardware_replay_artifact.md`.
 
-## 4. Expected Hardware Evidence
+## 4. Retained Hardware Evidence
 
-The next hardware artifact shall retain:
+The retained hardware artifact records:
 
 - Artifact document: `docs/evidence/v0.1.0-rc1/hardware_replay_artifact.md`
 - Raw transcript: `docs/evidence/v0.1.0-rc1/hardware_replay_transcript.txt`
 - Replay vector: `math-add-001`
+- Result: `PASS`
+- Transcript byte count: `99`
+- Transcript SHA-256: `02467511fe2b7956fcb6efb66483bbb5b418e78e954fab395eddefefab98bd56`
 - Expected payload: `precision-replay v0.1.0-rc1 vector=math-add-001 result_bits=0x00000000000000020000000000000000`
 
 ## 5. Proof and Status References
@@ -54,7 +57,6 @@ This package indexes evidence; it does not widen claims.
 
 Known deferred surfaces remain deferred:
 
-- New `v0.1.0-rc1` STM32F446 hardware recapture
 - Full multiplication closure
 - Full unbounded symbolic limb-matrix correspondence
 - Private/helper-state limb combinations not reachable from public raw operands
