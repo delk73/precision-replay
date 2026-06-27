@@ -25,17 +25,17 @@ This document records the current traceability links and verification status bet
 
 ---
 
-## 2. MVP Readiness Requirements
+## 2. Release Candidate Readiness Requirements
 
-These rows define MVP readiness requirements for release evidence packaging, one retained hardware-backed replay validation artifact, and final MVP boundary/readiness status. They are documentation-level readiness requirements and do not claim DO-178C, DAL A, tool qualification, hardware qualification, or certification compliance.
+These rows define release candidate readiness requirements for release evidence packaging, one retained hardware-backed replay validation artifact, and final release candidate boundary/readiness status. They are documentation-level readiness requirements and do not claim DO-178C, DAL A, tool qualification, hardware qualification, or certification compliance.
 
-`engineering_contract.md` remains the workflow and evidence-boundary authority. These rows define the listed items as MVP readiness requirements, but they do not implement release evidence package generation, bundle validation, hardware capture, generated traceability, certification evidence, broader Kani release/proof authority, or ordinary local merge preconditions.
+`engineering_contract.md` remains the workflow and evidence-boundary authority. These rows define the listed items as release candidate readiness requirements, but they do not implement release evidence package generation, bundle validation, hardware capture, generated traceability, certification evidence, broader Kani release/proof authority, or ordinary local merge preconditions. Existing `HLR-MVP-*` and `LLR-REPLAY-MVP-*` identifiers are stable requirement identifiers and are not renamed by release candidate identity alignment.
 
-| MVP Readiness Surface | Requirement ID | Traceability / Status |
+| Release Candidate Readiness Surface | Requirement ID | Traceability / Status |
 | :--- | :--- | :--- |
-| Retained and validated release evidence package | **HLR-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-002** | MVP readiness requirement. Defines retained validation outputs, applicable proof results, provenance, requirement/verification status references, manifest contents, and bundle validation expectations; package generation and bundle validator implementation remain outside this change. |
-| One retained hardware-backed replay validation artifact | **HLR-MVP-HW-001** / **LLR-REPLAY-MVP-HW-001** | MVP readiness requirement. Defines one retained deterministic replay artifact with embedded target execution, host/reference comparison, retained artifact path, and pass/fail verdict; generalized hardware replay coverage and local merge gating remain outside this row. |
-| MVP boundary and readiness statement | **HLR-MVP-BND-001** / **LLR-REPLAY-MVP-BND-001** | MVP readiness requirement. Defines explicit active-covered, bounded, deferred, and non-certified surfaces, including the statement that certification compliance is not claimed. |
+| Retained and validated release evidence package | **HLR-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-001** / **LLR-REPLAY-MVP-EVD-002** | Release candidate readiness requirement. Defines retained validation outputs, applicable proof results, provenance, requirement/verification status references, manifest contents, and bundle validation expectations; package generation and bundle validator implementation remain outside this change. |
+| One retained hardware-backed replay validation artifact | **HLR-MVP-HW-001** / **LLR-REPLAY-MVP-HW-001** | Release candidate readiness requirement. Defines one retained deterministic replay artifact with embedded target execution, host/reference comparison, retained artifact path, and pass/fail verdict; generalized hardware replay coverage and local merge gating remain outside this row. |
+| Release candidate boundary and readiness statement | **HLR-MVP-BND-001** / **LLR-REPLAY-MVP-BND-001** | Release candidate readiness requirement. Defines explicit active-covered, bounded, deferred, and non-certified surfaces, including the statement that certification compliance is not claimed. |
 
 ---
 

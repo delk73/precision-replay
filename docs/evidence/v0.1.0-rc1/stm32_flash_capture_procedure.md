@@ -1,14 +1,14 @@
-# STM32 Flash and Capture Procedure - MVP RC1
+# STM32 Flash and Capture Procedure - v0.1.0-rc1
 
 ## 1. Purpose
 
-This procedure defines the narrow STM32F446 flash and serial-capture flow for the MVP RC1 hardware artifact lane.
+This procedure defines the narrow STM32F446 flash and serial-capture flow for the `v0.1.0-rc1` hardware artifact lane.
 
 This procedure is not itself the retained hardware artifact. The retained artifact and transcript are captured in a later commit.
 
 ## 2. Scope
 
-This procedure applies only to the `stm32-runner` firmware package built for `thumbv7m-none-eabi` and the MVP RC1 serial result line emitted by that firmware.
+This procedure applies only to the `stm32-runner` firmware package built for `thumbv7m-none-eabi` and the `v0.1.0-rc1` serial result line emitted by that firmware.
 
 It does not define a generalized replay protocol, broad board-support procedure, hardware qualification activity, tool qualification activity, release authority, or certification evidence.
 
@@ -82,7 +82,7 @@ One local capture flow is:
 
 ```sh
 stty -F /dev/ttyACM0 115200 cs8 -cstopb -parenb raw -echo
-timeout 10 cat /dev/ttyACM0 | tee docs/evidence/mvp-rc1/hardware_replay_transcript.txt
+timeout 10 cat /dev/ttyACM0 | tee docs/evidence/v0.1.0-rc1/hardware_replay_transcript.txt
 ```
 
 Start the capture command before resetting the STM32F446 target.
@@ -98,12 +98,12 @@ The retained transcript must contain target output captured from `/dev/ttyACM0`;
 Expected emitted serial line:
 
 ```text
-precision-replay mvp-rc1 vector=math-add-001 result_bits=0x00000000000000020000000000000000
+precision-replay v0.1.0-rc1 vector=math-add-001 result_bits=0x00000000000000020000000000000000
 ```
 
 ## 9. PASS/FAIL Rule
 
-PASS only if the retained transcript contains exactly the expected MVP RC1 result line from `/dev/ttyACM0` after flashing the `stm32-runner` image built from the recorded baseline.
+PASS only if the retained transcript contains exactly the expected `v0.1.0-rc1` result line from `/dev/ttyACM0` after flashing the `stm32-runner` image built from the recorded baseline.
 
 FAIL if the transcript is missing, the target identity is not STM32F446, the serial device is not `/dev/ttyACM0`, the emitted vector identifier differs, or the captured `result_bits` value differs from the expected line.
 
@@ -111,8 +111,8 @@ FAIL if the transcript is missing, the target identity is not STM32F446, the ser
 
 The later artifact-retention commit shall retain the hardware artifact and transcript at:
 
-- `docs/evidence/mvp-rc1/hardware_replay_artifact.md`
-- `docs/evidence/mvp-rc1/hardware_replay_transcript.txt`
+- `docs/evidence/v0.1.0-rc1/hardware_replay_artifact.md`
+- `docs/evidence/v0.1.0-rc1/hardware_replay_transcript.txt`
 
 ## 11. Explicit Non-Claims
 

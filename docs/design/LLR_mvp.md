@@ -1,13 +1,13 @@
-# Low-Level Requirements - MVP Readiness Evidence (LLR-MVP)
+# Low-Level Requirements - Release Candidate Readiness Evidence (LLR-MVP)
 
-These low-level requirements refine the MVP readiness surface for the retained release evidence package, one hardware-backed replay validation artifact, and the MVP readiness statement. They define required contents and retained paths only; they do not implement artifact generation, bundle validation, hardware capture, generated traceability, certification evidence, or local merge gate changes.
+These low-level requirements refine the release candidate readiness surface for the retained release evidence package, one hardware-backed replay validation artifact, and the release candidate readiness statement. They define required contents and retained paths only; they do not implement artifact generation, bundle validation, hardware capture, generated traceability, certification evidence, or local merge gate changes. Existing `LLR-REPLAY-MVP-*` identifiers are stable requirement identifiers and are not renamed by release candidate identity alignment.
 
 `engineering_contract.md` remains the workflow and evidence-boundary authority for active local merge preconditions, release evidence boundaries, hardware validation boundaries, and certification-readiness deferrals.
 
 ## 1. Release Evidence Package (LLR-REPLAY-MVP-EVD)
 
 ### LLR-REPLAY-MVP-EVD-001: Release Evidence Manifest Contents
-The MVP release evidence package shall include a manifest that identifies, at minimum:
+The release candidate evidence package shall include a manifest that identifies, at minimum:
 1. release or candidate identifier,
 2. baseline commit SHA,
 3. source repository identity,
@@ -23,7 +23,7 @@ The manifest shall reference retained paths rather than relying on unstated loca
 *Traces to: HLR-MVP-EVD-001*
 
 ### LLR-REPLAY-MVP-EVD-002: Release Evidence Bundle Validation Expectations
-The MVP release evidence bundle shall be considered valid only when the retained package can be checked for:
+The release candidate evidence bundle shall be considered valid only when the retained package can be checked for:
 1. manifest presence,
 2. referenced artifact path presence,
 3. baseline SHA and repository identity presence,
@@ -38,7 +38,7 @@ This requirement defines expected validation behavior for the future bundle vali
 ## 2. Hardware-Backed Replay Artifact (LLR-REPLAY-MVP-HW)
 
 ### LLR-REPLAY-MVP-HW-001: Retained Hardware Replay Artifact Contents
-The MVP hardware-backed replay validation artifact shall include, at minimum:
+The release candidate hardware-backed replay validation artifact shall include, at minimum:
 1. the deterministic replay vector under test,
 2. the host/reference result or digest,
 3. the embedded/target result or digest,
@@ -51,10 +51,10 @@ The MVP hardware-backed replay validation artifact shall include, at minimum:
 The artifact shall show execution through the embedded target path for one defined deterministic replay vector. It does not implement hardware capture or establish generalized hardware-backed replay validation coverage.
 *Traces to: HLR-MVP-HW-001*
 
-## 3. MVP Readiness Statement (LLR-REPLAY-MVP-BND)
+## 3. Release Candidate Readiness Statement (LLR-REPLAY-MVP-BND)
 
-### LLR-REPLAY-MVP-BND-001: MVP Readiness Statement Structure
-The MVP readiness statement shall explicitly identify:
+### LLR-REPLAY-MVP-BND-001: Release Candidate Readiness Statement Structure
+The release candidate readiness statement shall explicitly identify:
 1. active-covered surfaces,
 2. bounded surfaces and their stated limits,
 3. deferred surfaces,
@@ -64,5 +64,5 @@ The MVP readiness statement shall explicitly identify:
 7. requirement and verification status references, and
 8. an explicit statement that certification compliance is not claimed.
 
-The readiness statement shall distinguish MVP readiness evidence from formal certification evidence, release authority, generalized hardware validation authority, generated traceability authority, broader Kani proof authority, and ordinary local merge gates.
+The readiness statement shall distinguish release candidate readiness evidence from formal certification evidence, release authority, generalized hardware validation authority, generated traceability authority, broader Kani proof authority, and ordinary local merge gates.
 *Traces to: HLR-MVP-BND-001*
