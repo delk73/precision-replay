@@ -3,8 +3,8 @@
 ## 1. Process Classification and Deferrals
 This project targets the technical execution rigor of DO-178C Level A within a single-developer workspace. 
 
-* **Active Enforcements:** Architectural isolation, language subset restrictions, absolute resource bounding, 100% decision coverage, and formal verification of mathematical invariants.
-* **Deferred Objectives:** Independent peer review, formal change control boards, tool qualification, and structural object-code analysis are deferred indefinitely due to organizational single-entity constraints.
+* **Current Status:** Active enforcement includes architectural isolation, language subset restrictions, bounded-resource coding constraints, repository-supported CI validation, and formal verification within the currently defined Kani proof surfaces. Completion of full-scope arithmetic proof closure, full decision-coverage evidence, including any required structural object-code analysis, remains a future-state verification objective.
+* **Deferred Objectives:** Independent peer review, formal change control boards, tool qualification, full-scope arithmetic proof closure, full decision-coverage evidence, and structural object-code analysis are deferred indefinitely due to organizational single-entity constraints and current repository proof-surface bounds.
 
 ## 2. Coding Standards & Invariants (CS-INV)
 
