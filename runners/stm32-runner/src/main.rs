@@ -41,7 +41,9 @@ fn emit_replay_result_line() {
     let result_bits = (lhs + rhs).to_bits() as u128;
 
     target::write_stlink_vcp_usart2(b"\r\n");
-    target::write_stlink_vcp_usart2(b"precision-replay v0.1.0-rc1 vector=math-add-001 result_bits=0x");
+    target::write_stlink_vcp_usart2(
+        b"precision-replay v0.1.0-rc1 vector=math-add-001 result_bits=0x",
+    );
     write_hex_u128(result_bits);
     target::write_stlink_vcp_usart2(b"\r\n");
 }

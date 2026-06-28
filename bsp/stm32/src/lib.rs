@@ -46,10 +46,16 @@ pub mod targets {
                 core::ptr::write_volatile(RCC_APB1ENR, apb1enr | RCC_APB1ENR_USART2EN);
 
                 let moder = core::ptr::read_volatile(GPIOA_MODER);
-                core::ptr::write_volatile(GPIOA_MODER, (moder & !GPIO_MODER_PA2_MASK) | GPIO_MODER_PA2_AF);
+                core::ptr::write_volatile(
+                    GPIOA_MODER,
+                    (moder & !GPIO_MODER_PA2_MASK) | GPIO_MODER_PA2_AF,
+                );
 
                 let afrl = core::ptr::read_volatile(GPIOA_AFRL);
-                core::ptr::write_volatile(GPIOA_AFRL, (afrl & !GPIO_AFRL_PA2_MASK) | GPIO_AFRL_PA2_AF7);
+                core::ptr::write_volatile(
+                    GPIOA_AFRL,
+                    (afrl & !GPIO_AFRL_PA2_MASK) | GPIO_AFRL_PA2_AF7,
+                );
 
                 core::ptr::write_volatile(USART2_BRR, USART2_BRR_16MHZ_115200);
                 core::ptr::write_volatile(USART2_CR1, USART_CR1_TE | USART_CR1_UE);
