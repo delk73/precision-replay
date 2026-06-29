@@ -1,0 +1,29 @@
+# Evidence package manifest for precision-replay v0.1.0-rc1.
+
+[package]
+id = "precision-replay-v0.1.0-rc1"
+release_version = "v0.1.0"
+release_candidate = "v0.1.0-rc1"
+repository = "delk73/precision-replay"
+rc_readiness_checkpoint = "106e1b01ab5209cf74629ab6fb4fbb993278b2dd"
+
+[evidence]
+retained_files = [
+  "evidence_package.md",
+  "hardware_replay_artifact.md",
+  "hardware_replay_transcript.txt",
+  "stm32_flash_capture_procedure.md",
+]
+
+[claims]
+supported = [
+  "one retained STM32F446 hardware-backed replay observation is recorded for this release candidate",
+]
+excluded = [
+  "certification compliance",
+  "tool qualification",
+  "hardware qualification",
+  "timing behavior",
+  "board-family validation",
+  "full arithmetic proof closure",
+]
