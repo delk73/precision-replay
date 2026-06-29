@@ -4,6 +4,7 @@
 
 # Local Private Test Suite (The Sequester Boundary)
 /precision-replay-sequester/
+/scripts/__pycache__
 **/*_sequestered/
 
 
