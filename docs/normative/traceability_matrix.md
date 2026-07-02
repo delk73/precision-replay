@@ -37,6 +37,80 @@ This document records the current traceability links and verification status bet
 
 ---
 
-## 3. Verification Alignment
+## 3. Sensor Witness
 
-Rows in this matrix are requirement traceability entries with an explicit verification status. Some rows correspond to active symbolic proofs in `verification/src/lib.rs` or implementation-local tests in `core/src/math.rs`; other rows are first-class pending proof obligations tracked by the SVCP. STM32 target witness rows provide behavioral traceability for retained replay observation runtime code and do not expand release evidence, hardware qualification, tool qualification, certification, proof, or CI claims. For addition and subtraction, `SVCP-MATH-PRO-001` is active for non-overflowing exactness plus overflow trap observation when `checked_add` or `checked_sub` return `None`; it does not claim panic message matching. For raw multiplication, `SVCP-MATH-PRO-002a` is active only for tiny fractional truncation-to-zero behavior, `SVCP-MATH-PRO-002b` is active only for bounded `u32` fractional raw operands plus the exact whole-unit raw endpoint, and `SVCP-MATH-PRO-002c` is active only for bounded fixed non-unit high-limb single-cross-term LH and HL correspondence, bounded two-term cross-sum composition, bounded low-limb carry contribution, bounded integrated non-overflowing matrix composition, bounded symbolic high-limb non-overflowing matrix composition, bounded high-high overflow-gate trap observation, bounded final signed-capacity overflow trap observation, public-operand cross-sum overflow unreachability for raw operands reachable through the public `I64F64` representation, signed minimum-capacity boundary allowance over the public raw multiplication path, and negative signed-capacity exceedance trap observation over the public raw multiplication path. Full multiplication closure, full unbounded symbolic limb-matrix correspondence, private/helper-state limb combinations not reachable from public raw operands, full overflow-gate correspondence, and full overflow/trap proof coverage remain pending. For division, `SVCP-MATH-PRO-003a` and `SVCP-MATH-PRO-003b` are active only for the bounded Kani guard slice covering divide-by-zero and numerator shift-overflow traps mapped to `LLR-REPLAY-MATH-OPS-003`; `SVCP-MATH-PRO-003c` is active for bounded non-trapping arithmetic correspondence with symbolic `i32` raw numerators and signed power-of-two denominator family `{-8, -4, -2, -1, 1, 2, 4, 8}`. Arbitrary-denominator and full unbounded symbolic division arithmetic remain pending, and implementation-local division tests do not expand that proof scope.
+| Witness Surface / Requirement Boundary | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| STM32F446 PA0 / ADC1_IN0 raw witness input path | **HLR-WITNESS-ADC** / **LLR-WITNESS-ADC** | requirements-defined; implementation-deferred; verification-deferred. This row defines the raw ADC witness input requirement surface and does not imply that the ADC witness lane already exists. |
+| USART2 ST-LINK VCP raw witness stream | **HLR-WITNESS-ADC** / **LLR-WITNESS-UART** | requirements-defined; implementation-deferred; verification-deferred. This row defines the raw witness stream boundary and does not expand existing retained replay witness output claims. |
+| Best-effort polling UART timing boundary | **HLR-WITNESS-TIME** / **LLR-WITNESS-TIME** | requirements-defined; implementation-deferred; verification-deferred. The active timing claim is `timing_claim=best_effort_polling_uart_stream` and excludes fixed-rate sampling, precise event timing, transient fidelity, replay alignment, timer-paced ADC, DMA buffering, interrupt-driven capture, and final timing authority. |
+| Linux host witness capture tool | **HLR-WITNESS-HOST** / **LLR-WITNESS-HOST** | requirements-defined; implementation-deferred; verification-deferred. This row defines the host capture requirement for raw sample-indexed witness records. |
+| Declared external stimulus boundary | **HLR-WITNESS-STIM** / **LLR-WITNESS-STIM** | requirements-defined; implementation-deferred; verification-deferred. Declared external stimulus requirements are deferred beyond the initial raw ADC witness implementation. |
+| Bounded response-envelope boundary | **HLR-WITNESS-ENV** / **LLR-WITNESS-ENV** | requirements-defined; implementation-deferred; verification-deferred. Bounded response-envelope evaluation requirements are deferred beyond the initial raw ADC witness implementation. |
+
+---
+
+## 4. Verification Alignment
+
+Rows in this matrix are requirement traceability entries with explicit verification status.
+
+Verification status sources include:
+
+- active symbolic proofs in `verification/src/lib.rs`
+- implementation-local tests in `core/src/math.rs`
+- first-class pending proof obligations tracked by the SVCP
+- implementation-deferred requirement rows
+
+STM32 target witness rows provide behavioral traceability for retained replay observation runtime code and do not expand release evidence, hardware qualification, tool qualification, certification, proof, or CI claims.
+
+Sensor Witness rows define the future raw ADC witness capture requirement surface and remain implementation-deferred and verification-deferred until the initial raw ADC witness implementation or later work supplies the corresponding implementation and evidence.
+
+### Addition and Subtraction
+
+`SVCP-MATH-PRO-001` is active for non-overflowing exactness plus overflow trap observation when `checked_add` or `checked_sub` return `None`.
+
+It does not claim panic message matching.
+
+### Multiplication
+
+`SVCP-MATH-PRO-002a` is active only for tiny fractional truncation-to-zero behavior.
+
+`SVCP-MATH-PRO-002b` is active only for bounded `u32` fractional raw operands plus the exact whole-unit raw endpoint.
+
+`SVCP-MATH-PRO-002c` is active only for:
+
+- bounded fixed non-unit high-limb single-cross-term LH and HL correspondence
+- bounded two-term cross-sum composition
+- bounded low-limb carry contribution
+- bounded integrated non-overflowing matrix composition
+- bounded symbolic high-limb non-overflowing matrix composition
+- bounded high-high overflow-gate trap observation
+- bounded final signed-capacity overflow trap observation
+- public-operand cross-sum overflow unreachability for raw operands reachable through the public `I64F64` representation
+- signed minimum-capacity boundary allowance over the public raw multiplication path
+- negative signed-capacity exceedance trap observation over the public raw multiplication path
+
+The following multiplication surfaces remain pending:
+
+- full multiplication closure
+- full unbounded symbolic limb-matrix correspondence
+- private/helper-state limb combinations not reachable from public raw operands
+- full overflow-gate correspondence
+- full overflow/trap proof coverage
+
+### Division
+
+`SVCP-MATH-PRO-003a` and `SVCP-MATH-PRO-003b` are active only for the bounded Kani guard slice covering divide-by-zero and numerator shift-overflow traps mapped to `LLR-REPLAY-MATH-OPS-003`.
+
+`SVCP-MATH-PRO-003c` is active for bounded non-trapping arithmetic correspondence with symbolic `i32` raw numerators and signed power-of-two denominator family:
+
+```text
+{-8, -4, -2, -1, 1, 2, 4, 8}
+```
+
+The following division surfaces remain pending:
+
+- arbitrary-denominator arithmetic
+- full unbounded symbolic division arithmetic
+
+Implementation-local division tests do not expand that proof scope.
