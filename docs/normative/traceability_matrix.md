@@ -39,14 +39,14 @@ This document records the current traceability links and verification status bet
 
 ## 3. Sensor Witness
 
-| Witness Surface / Requirement Boundary | Requirement ID | Traceability Verification |
-| :--- | :--- | :--- |
-| STM32F446 PA0 / ADC1_IN0 raw witness input path | **HLR-WITNESS-ADC** / **LLR-WITNESS-ADC** | requirements-defined; implementation-deferred; verification-deferred. This row defines the raw ADC witness input requirement surface and does not imply that the ADC witness lane already exists. |
-| USART2 ST-LINK VCP raw witness stream | **HLR-WITNESS-ADC** / **LLR-WITNESS-UART** | requirements-defined; implementation-deferred; verification-deferred. This row defines the raw witness stream boundary and does not expand existing retained replay witness output claims. |
-| Best-effort polling UART timing boundary | **HLR-WITNESS-TIME** / **LLR-WITNESS-TIME** | requirements-defined; implementation-deferred; verification-deferred. The active timing claim is `timing_claim=best_effort_polling_uart_stream` and excludes fixed-rate sampling, precise event timing, transient fidelity, replay alignment, timer-paced ADC, DMA buffering, interrupt-driven capture, and final timing authority. |
-| Linux host witness capture tool | **HLR-WITNESS-HOST** / **LLR-WITNESS-HOST** | requirements-defined; implementation-deferred; verification-deferred. This row defines the host capture requirement for raw sample-indexed witness records. |
-| Declared external stimulus boundary | **HLR-WITNESS-STIM** / **LLR-WITNESS-STIM** | requirements-defined; implementation-deferred; verification-deferred. Declared external stimulus requirements are deferred beyond the initial raw ADC witness implementation. |
-| Bounded response-envelope boundary | **HLR-WITNESS-ENV** / **LLR-WITNESS-ENV** | requirements-defined; implementation-deferred; verification-deferred. Bounded response-envelope evaluation requirements are deferred beyond the initial raw ADC witness implementation. |
+| Witness requirement | Implementation | Verification / status | Boundary |
+| :--- | :--- | :--- | :--- |
+| **HLR-WITNESS-ADC** / **LLR-WITNESS-ADC** | `bsp/stm32/src/lib.rs`: configures STM32F446 PA0 / ADC1_IN0 for blocking raw ADC sampling. `runners/stm32-runner/src/main.rs`: reads raw ADC samples and emits raw ADC witness records. | Implementation-traced. Build/static validation covers workspace format/check/test/clippy, STM32 BSP target check, and STM32 runner target build. Retained hardware capture artifact and host parser validation remain follow-on work. | Claims only raw 12-bit ADC witness emission. No fixed-rate timing, DMA, interrupt timing, calibration, magnetic-field units, replay alignment, digest sealing, or stimulus-envelope semantics. |
+| **HLR-WITNESS-ADC** / **LLR-WITNESS-UART** | `runners/stm32-runner/src/main.rs`: emits raw sample-indexed witness records over ST-LINK VCP USART2. | Implementation-traced through the raw ADC witness lane. Host parser validation remains follow-on work. | Does not expand retained replay witness output claims or assert retained host capture validation. |
+| **HLR-WITNESS-TIME** / **LLR-WITNESS-TIME** | `runners/stm32-runner/src/main.rs`: declares `timing_claim=best_effort_polling_uart_stream` in each raw ADC witness record. | Implementation-traced. Stronger timing verification is deferred. | Excludes fixed-rate sampling, precise event timing, transient fidelity, replay alignment, timer-paced ADC, DMA buffering, interrupt-driven capture, and final timing authority. |
+| **HLR-WITNESS-HOST** / **LLR-WITNESS-HOST** | Linux host witness capture tool requirement surface. | requirements-defined; implementation-deferred; verification-deferred. | Defines the host capture requirement for raw sample-indexed witness records without claiming host parser validation in this change. |
+| **HLR-WITNESS-STIM** / **LLR-WITNESS-STIM** | Declared external stimulus boundary. | requirements-defined; implementation-deferred; verification-deferred. | Declared external stimulus requirements are deferred beyond the initial raw ADC witness implementation. |
+| **HLR-WITNESS-ENV** / **LLR-WITNESS-ENV** | Bounded response-envelope boundary. | requirements-defined; implementation-deferred; verification-deferred. | Bounded response-envelope evaluation requirements are deferred beyond the initial raw ADC witness implementation. |
 
 ---
 
@@ -63,7 +63,7 @@ Verification status sources include:
 
 STM32 target witness rows provide behavioral traceability for retained replay observation runtime code and do not expand release evidence, hardware qualification, tool qualification, certification, proof, or CI claims.
 
-Sensor Witness rows define the future raw ADC witness capture requirement surface and remain implementation-deferred and verification-deferred until the initial raw ADC witness implementation or later work supplies the corresponding implementation and evidence.
+Sensor Witness rows distinguish the initial STM32F446 raw ADC witness implementation from deferred validation and later witness surfaces. The raw ADC lane is traced to implementation with build/static validation only. Retained hardware capture artifacts, host parser validation, stimulus-envelope semantics, calibrated units, replay alignment, digest sealing, and stronger timing claims remain outside the current boundary.
 
 ### Addition and Subtraction
 
