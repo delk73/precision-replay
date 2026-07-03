@@ -15,3 +15,5 @@
 diff.txt
 .codex/
 AGENTS.md
+tests/__pycache__/
+tools/__pycache__/
