@@ -24,6 +24,6 @@ The initial raw ADC witness implementation shall provide a Linux stdlib host par
 Declared observation context and any named external stimulus are implementation-deferred. The initial raw ADC witness implementation shall not generate, verify, calibrate, synchronize, qualify, or prove sufficiency of external stimulus.
 *Traces to: HLR-WITNESS-STIM*
 
-### LLR-WITNESS-ENV: Deferred Bounded Response-Envelope Evaluation
-Bounded response-envelope evaluation is deferred.
+### LLR-WITNESS-ENV: Deferred Raw ADC Envelope Judgment
+Raw ADC envelope judgment is implementation-deferred. The initial raw ADC witness implementation shall not add an envelope checker, calibrated measurement, timing proof, signal-quality assessment, stimulus-adequacy assessment, board qualification, release readiness, or certification posture.
 *Traces to: HLR-WITNESS-ENV*
