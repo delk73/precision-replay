@@ -1,6 +1,0 @@
-sample_count=255
-first_sample_index=1132472
-last_sample_index=1294898
-min_raw_adc=0x083d
-max_raw_adc=0x086d
-malformed_witness_lines=1
