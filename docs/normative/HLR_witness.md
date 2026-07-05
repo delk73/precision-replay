@@ -23,5 +23,13 @@ The witness lane shall allow an admitted observation to belong to a declared con
 
 Declared context shall not imply stimulus quality, calibrated stimulus, stimulus timing, stimulus sufficiency, replay alignment, response-envelope pass/fail, or stronger timing than the observation's explicit timing claim. Timing remains governed by HLR-WITNESS-TIME.
 
-### HLR-WITNESS-ENV: Deferred Response-Envelope Boundary
-The witness lane shall allow later bounded response-envelope requirements without making envelope evaluation part of the initial raw ADC witness implementation.
+### HLR-WITNESS-ENV: Raw ADC Envelope Judgment Boundary
+The witness lane shall allow admitted raw ADC observations in a declared context to be judged against a raw ADC envelope. Raw ADC envelope judgment applies only to admitted observations in a declared context.
+
+The first raw ADC envelope judgment definition shall use only `raw_adc_min`, `raw_adc_max`, `min_sample_count`, and `allow_malformed_witness_lines`. The allowed judgment results shall be `pass`, `fail`, `inconclusive`, and `not_applicable`.
+
+`allow_malformed_witness_lines` declares whether malformed witness rows are tolerated by the judgment. When `false`, malformed witness rows shall prevent `pass`. When `true`, malformed witness rows remain outside the admitted observation set and may be tolerated only under the existing best-effort/non-lossless capture boundary. This field shall not make malformed rows valid observations and shall not claim UART losslessness, timing proof, signal quality, stimulus adequacy, or hardware correctness.
+
+A `pass` result shall be allowed only when the declared context supplies applicable raw ADC limits and sample-count requirements, the admitted observations meet the required sample count, and every judged admitted observation is within the declared raw ADC minimum and maximum limits. Missing context, missing applicable raw ADC limits, malformed rows, or too few admitted samples shall not produce `pass`.
+
+Raw ADC envelope judgment shall not imply calibrated measurement, timing proof, signal quality, stimulus adequacy, hardware qualification, release readiness, or certification posture.
