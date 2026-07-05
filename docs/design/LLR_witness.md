@@ -20,8 +20,8 @@ This timing claim excludes fixed-rate sampling, precise event timing, transient 
 The initial raw ADC witness implementation shall provide a Linux stdlib host parser/capture tool for raw witness records.
 *Traces to: HLR-WITNESS-HOST*
 
-### LLR-WITNESS-STIM: Deferred Declared External Stimulus
-Declared external stimulus is deferred.
+### LLR-WITNESS-STIM: Deferred Declared Context and External Stimulus
+Declared observation context and any named external stimulus are implementation-deferred. The initial raw ADC witness implementation shall not generate, verify, calibrate, synchronize, qualify, or prove sufficiency of external stimulus.
 *Traces to: HLR-WITNESS-STIM*
 
 ### LLR-WITNESS-ENV: Deferred Bounded Response-Envelope Evaluation
