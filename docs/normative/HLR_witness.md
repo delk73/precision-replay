@@ -13,6 +13,11 @@ This timing claim excludes fixed-rate sampling, precise event timing, transient 
 ### HLR-WITNESS-HOST: Raw Sample-Indexed Host Capture
 The witness lane shall support host capture of raw sample-indexed witness records.
 
+### HLR-WITNESS-OBS: Raw ADC Capture as Observation
+Raw ADC witness rows shall be treated first as capture records. A raw ADC witness row may count as an observation only when it is accepted by host checking as part of an admitted raw ADC capture. Such an observation identifies the witness channel, sample index, raw ADC value, and explicit timing claim.
+
+Observation status shall not imply calibrated voltage, magnetic-field units, stimulus response, response-envelope pass/fail, signal quality, hardware qualification, release readiness, or certification posture.
+
 ### HLR-WITNESS-STIM: Deferred External Stimulus Boundary
 The witness lane shall allow later declared external stimulus requirements without making stimulus part of the initial raw ADC witness implementation.
 
