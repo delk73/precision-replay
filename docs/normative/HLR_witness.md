@@ -18,8 +18,10 @@ Raw ADC witness rows shall be treated first as capture records. A raw ADC witnes
 
 Observation status shall not imply calibrated voltage, magnetic-field units, stimulus response, response-envelope pass/fail, signal quality, hardware qualification, release readiness, or certification posture.
 
-### HLR-WITNESS-STIM: Deferred External Stimulus Boundary
-The witness lane shall allow later declared external stimulus requirements without making stimulus part of the initial raw ADC witness implementation.
+### HLR-WITNESS-STIM: Declared Observation Context Boundary
+The witness lane shall allow an admitted observation to belong to a declared context. The declared context may name an external stimulus, but the repository shall not generate, verify, calibrate, synchronize, qualify, or prove sufficiency of that stimulus as part of the initial raw ADC witness implementation.
+
+Declared context shall not imply stimulus quality, calibrated stimulus, stimulus timing, stimulus sufficiency, replay alignment, response-envelope pass/fail, or stronger timing than the observation's explicit timing claim. Timing remains governed by HLR-WITNESS-TIME.
 
 ### HLR-WITNESS-ENV: Deferred Response-Envelope Boundary
 The witness lane shall allow later bounded response-envelope requirements without making envelope evaluation part of the initial raw ADC witness implementation.
