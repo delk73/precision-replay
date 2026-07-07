@@ -1,0 +1,12 @@
+result=pass
+reason=all_admitted_observations_within_envelope
+context_id=bench-context-raw-adc-retained-20260704T211403Z
+envelope_id=raw-adc-envelope-retained-20260704T211403Z
+raw_adc_min=0x0830
+raw_adc_max=0x0870
+min_sample_count=128
+allow_malformed_witness_lines=false
+admitted_sample_count=256
+admitted_min_raw_adc=0x083f
+admitted_max_raw_adc=0x085f
+malformed_witness_lines=0
