@@ -48,3 +48,30 @@ Saved replay input parsing shall be a pure in-memory operation over `&str` input
 ### LLR-REPLAY-PARSE-005: Parse/Execute Separation
 Saved replay input parsing shall not execute replay frames; execution remains owned by `execute_replay(&[ReplayFrame])`.
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
+
+
+## 5. Retained Replay Witness Checker
+
+### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
+The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
+*Traces to: HLR-REPLAY-CHECK-001*
+
+### LLR-REPLAY-CHECK-002: Generated Witness Text Format
+The generated replay witness text format shall be one line: `precision-replay witness=replay-input-v1 schema=math-i64f64-v1 state=accepted result_bits=<i128>`.
+*Traces to: HLR-REPLAY-CHECK-004, HLR-REPLAY-CHECK-005, HLR-REPLAY-CHECK-007*
+
+### LLR-REPLAY-CHECK-003: Checker Result Text Format
+The checker result text format shall be four lines: `parse=pass`, `replay=pass`, `witness=pass`, and `result=pass`.
+*Traces to: HLR-REPLAY-CHECK-006, HLR-REPLAY-CHECK-008*
+
+### LLR-REPLAY-CHECK-004: Public Replay Checker Command
+The public retained replay checker command shall be `make replay-check`.
+*Traces to: HLR-REPLAY-CHECK-001*
+
+### LLR-REPLAY-CHECK-005: Checker Stage Ordering
+The retained replay checker shall run parse, replay, witness, and result stages in order.
+*Traces to: HLR-REPLAY-CHECK-002, HLR-REPLAY-CHECK-003, HLR-REPLAY-CHECK-004, HLR-REPLAY-CHECK-005, HLR-REPLAY-CHECK-006*
+
+### LLR-REPLAY-CHECK-006: Checker Failure Behavior
+The retained replay checker shall exit nonzero for parse failure, replay rejection, witness mismatch, and result mismatch.
+*Traces to: HLR-REPLAY-CHECK-002, HLR-REPLAY-CHECK-003, HLR-REPLAY-CHECK-007, HLR-REPLAY-CHECK-008*

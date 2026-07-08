@@ -1,0 +1,5 @@
+precision-replay-input v1
+schema math-i64f64-v1
+load lhs=55340232221128654848 rhs=18446744073709551616
+sub
+expect bits=36893488147419103232
