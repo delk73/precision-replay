@@ -9,6 +9,10 @@
 //! 128-bit fixed-point (I64F64) operations, and control flow invariants.
 
 pub mod math;
+pub mod replay;
+
+#[cfg(test)]
+mod replay_tests;
 
 pub mod validation {
     // Porting target for control flow integrity and state invariants

@@ -25,7 +25,18 @@ This document records the current traceability links and verification status bet
 
 ---
 
-## 2. Target Witness Runtime
+## 2. Replay Execution
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| `ReplayFrame` in `core/src/replay.rs` | **HLR-REPLAY-EXEC-001** / **HLR-REPLAY-EXEC-002** / **LLR-REPLAY-EXEC-001** | Defines the public in-memory frame surface for loading operands, executing add/sub/mul/div math operations, and expecting result bits. |
+| `ReplayExecutionState`, `ReplayRejectionReason`, and `ReplayExecutionResult` in `core/src/replay.rs` | **HLR-REPLAY-EXEC-003** / **HLR-REPLAY-EXEC-004** / **HLR-REPLAY-EXEC-005** / **LLR-REPLAY-EXEC-002** / **LLR-REPLAY-EXEC-003** | Exposes deterministic execution state, optional result bits, and rejection reasons for invalid order and expected-result mismatch. |
+| `execute_replay(...)` in `core/src/replay.rs` | **HLR-REPLAY-EXEC-001** / **HLR-REPLAY-EXEC-002** / **HLR-REPLAY-EXEC-003** / **HLR-REPLAY-EXEC-004** / **HLR-REPLAY-EXEC-005** / **LLR-REPLAY-EXEC-004** / **LLR-REPLAY-EXEC-005** | Executes a pure in-memory replay frame slice using existing `I64F64` add/sub/mul/div behavior, rejects invalid frame ordering and result mismatches, and returns a deterministic result. |
+| `core/src/replay_tests.rs` | **HLR-REPLAY-EXEC-001** / **HLR-REPLAY-EXEC-002** / **HLR-REPLAY-EXEC-003** / **HLR-REPLAY-EXEC-004** / **HLR-REPLAY-EXEC-005** / **LLR-REPLAY-EXEC-001** / **LLR-REPLAY-EXEC-002** / **LLR-REPLAY-EXEC-003** / **LLR-REPLAY-EXEC-004** / **LLR-REPLAY-EXEC-005** | Covers valid add/sub/mul/nonzero-div acceptance, math operation before operand rejection, expected result before execution rejection, expected-result mismatch rejection, frame-after-acceptance rejection, empty frame-slice state, and repeatability for identical frame slices. |
+
+---
+
+## 3. Target Witness Runtime
 
 | Code Component / Implementation Block | Requirement ID | Traceability Verification |
 | :--- | :--- | :--- |
@@ -37,7 +48,7 @@ This document records the current traceability links and verification status bet
 
 ---
 
-## 3. Sensor Witness
+## 4. Sensor Witness
 
 | Witness requirement | Implementation | Verification / status | Boundary |
 | :--- | :--- | :--- | :--- |
@@ -52,7 +63,7 @@ This document records the current traceability links and verification status bet
 
 ---
 
-## 4. Verification Alignment
+## 5. Verification Alignment
 
 Rows in this matrix are requirement traceability entries with explicit verification status.
 
