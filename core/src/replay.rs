@@ -13,6 +13,36 @@ pub enum ReplayFrame {
 }
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ReplayInputVersion {
+    V1,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ReplayInputSchema {
+    MathI64F64V1,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct ParsedReplayInput<'a> {
+    pub version: ReplayInputVersion,
+    pub schema: ReplayInputSchema,
+    pub frames: &'a [ReplayFrame],
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub enum ReplayParseError {
+    MissingVersion,
+    UnknownVersion,
+    MissingSchema,
+    UnknownSchema,
+    UnknownFrameOpcode,
+    MalformedFrame,
+    MissingField,
+    InvalidInteger,
+    FrameCapacityExceeded,
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ReplayExecutionState {
     NoOperandsLoaded,
     OperandsLoaded,
@@ -71,6 +101,124 @@ enum ExecutionPhase {
     OperandsLoaded,
     ResultProduced,
     Accepted,
+}
+
+pub fn parse_replay_input<'a>(
+    input: &str,
+    out: &'a mut [ReplayFrame],
+) -> Result<ParsedReplayInput<'a>, ReplayParseError> {
+    let mut lines = input.lines();
+
+    let version = parse_version_line(lines.next())?;
+    let schema = parse_schema_line(lines.next())?;
+    let mut frame_count = 0usize;
+
+    for line in lines {
+        if frame_count == out.len() {
+            return Err(ReplayParseError::FrameCapacityExceeded);
+        }
+
+        out[frame_count] = parse_frame_line(line)?;
+        frame_count = frame_count
+            .checked_add(1)
+            .expect("frame count increments only after capacity check");
+    }
+
+    Ok(ParsedReplayInput {
+        version,
+        schema,
+        frames: &out[..frame_count],
+    })
+}
+
+fn parse_version_line(line: Option<&str>) -> Result<ReplayInputVersion, ReplayParseError> {
+    let Some(line) = line else {
+        return Err(ReplayParseError::MissingVersion);
+    };
+
+    let mut fields = line.split(' ');
+    match (fields.next(), fields.next(), fields.next()) {
+        (Some("precision-replay-input"), Some("v1"), None) => Ok(ReplayInputVersion::V1),
+        (Some("precision-replay-input"), Some(_), None) => Err(ReplayParseError::UnknownVersion),
+        _ => Err(ReplayParseError::MissingVersion),
+    }
+}
+
+fn parse_schema_line(line: Option<&str>) -> Result<ReplayInputSchema, ReplayParseError> {
+    let Some(line) = line else {
+        return Err(ReplayParseError::MissingSchema);
+    };
+
+    let mut fields = line.split(' ');
+    match (fields.next(), fields.next(), fields.next()) {
+        (Some("schema"), Some("math-i64f64-v1"), None) => Ok(ReplayInputSchema::MathI64F64V1),
+        (Some("schema"), Some(_), None) => Err(ReplayParseError::UnknownSchema),
+        _ => Err(ReplayParseError::MissingSchema),
+    }
+}
+
+fn parse_frame_line(line: &str) -> Result<ReplayFrame, ReplayParseError> {
+    let mut fields = line.split(' ');
+    let Some(opcode) = fields.next() else {
+        return Err(ReplayParseError::MalformedFrame);
+    };
+
+    match opcode {
+        "load" => parse_load_frame(fields),
+        "add" => no_more_fields(fields).map(|()| ReplayFrame::Add),
+        "sub" => no_more_fields(fields).map(|()| ReplayFrame::Sub),
+        "mul" => no_more_fields(fields).map(|()| ReplayFrame::Mul),
+        "div" => no_more_fields(fields).map(|()| ReplayFrame::Div),
+        "expect" => parse_expect_frame(fields),
+        "" => Err(ReplayParseError::MalformedFrame),
+        _ => Err(ReplayParseError::UnknownFrameOpcode),
+    }
+}
+
+fn parse_load_frame<'a>(
+    mut fields: impl Iterator<Item = &'a str>,
+) -> Result<ReplayFrame, ReplayParseError> {
+    let lhs_bits = parse_required_i128_field(fields.next(), "lhs")?;
+    let rhs_bits = parse_required_i128_field(fields.next(), "rhs")?;
+    no_more_fields(fields)?;
+
+    Ok(ReplayFrame::LoadOperands { lhs_bits, rhs_bits })
+}
+
+fn parse_expect_frame<'a>(
+    mut fields: impl Iterator<Item = &'a str>,
+) -> Result<ReplayFrame, ReplayParseError> {
+    let bits = parse_required_i128_field(fields.next(), "bits")?;
+    no_more_fields(fields)?;
+
+    Ok(ReplayFrame::ExpectResultBits(bits))
+}
+
+fn parse_required_i128_field(field: Option<&str>, name: &str) -> Result<i128, ReplayParseError> {
+    let Some(field) = field else {
+        return Err(ReplayParseError::MissingField);
+    };
+    let Some(value) = field.strip_prefix(name) else {
+        return Err(ReplayParseError::MissingField);
+    };
+    let Some(value) = value.strip_prefix('=') else {
+        return Err(ReplayParseError::MissingField);
+    };
+    if value.is_empty() {
+        return Err(ReplayParseError::InvalidInteger);
+    }
+
+    value
+        .parse::<i128>()
+        .map_err(|_| ReplayParseError::InvalidInteger)
+}
+
+fn no_more_fields<'a>(mut fields: impl Iterator<Item = &'a str>) -> Result<(), ReplayParseError> {
+    if fields.next().is_some() {
+        return Err(ReplayParseError::MalformedFrame);
+    }
+
+    Ok(())
 }
 
 pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
