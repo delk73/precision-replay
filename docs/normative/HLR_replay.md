@@ -37,3 +37,30 @@ Saved replay input parsing shall reject malformed frame rows.
 
 ### HLR-REPLAY-PARSE-006: Deterministic Frame Production
 Saved replay input parsing shall produce replay frames for deterministic execution.
+
+
+## 3. Retained Replay Witness Checking
+
+### HLR-REPLAY-CHECK-001: Retained Saved Input Source Check
+A retained saved replay input shall be checked from source files.
+
+### HLR-REPLAY-CHECK-002: Checker Parse Stage
+Replay checking shall parse the saved input.
+
+### HLR-REPLAY-CHECK-003: Checker Replay Stage
+Replay checking shall execute the parsed frames deterministically.
+
+### HLR-REPLAY-CHECK-004: Deterministic Witness Generation
+Replay checking shall generate deterministic witness output.
+
+### HLR-REPLAY-CHECK-005: Expected Witness Comparison
+Replay checking shall compare generated witness output to retained expected witness.
+
+### HLR-REPLAY-CHECK-006: Expected Result Comparison
+Replay checking shall compare generated checker result to retained expected result.
+
+### HLR-REPLAY-CHECK-007: Witness Mismatch Failure
+Replay checking shall fail when expected witness does not match generated witness.
+
+### HLR-REPLAY-CHECK-008: Result Mismatch Failure
+Replay checking shall fail when expected result does not match generated result.
