@@ -25,3 +25,26 @@ Replay execution shall execute as a pure in-memory operation over a frame slice.
 ### LLR-REPLAY-EXEC-005: Replay Repeatability
 Running the same frame slice twice shall produce the same execution result.
 *Traces to: HLR-REPLAY-EXEC-001, HLR-REPLAY-EXEC-005*
+
+
+## 4. Saved Input Parsing
+
+### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
+Saved replay input parsing shall accept only the initial text grammar: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
+*Traces to: HLR-REPLAY-PARSE-001, HLR-REPLAY-PARSE-002, HLR-REPLAY-PARSE-006*
+
+### LLR-REPLAY-PARSE-002: Saved Input Frame Rows
+Saved replay input parsing shall define frame rows `load lhs=<i128> rhs=<i128>`, `add`, `sub`, `mul`, `div`, and `expect bits=<i128>`.
+*Traces to: HLR-REPLAY-PARSE-005, HLR-REPLAY-PARSE-006*
+
+### LLR-REPLAY-PARSE-003: Parse Rejection Reasons
+Saved replay input parsing shall define rejection reasons for missing version, unknown version, missing schema, unknown schema, unknown frame opcode, malformed frame rows, missing required fields, invalid integer fields, and caller-provided frame capacity exhaustion.
+*Traces to: HLR-REPLAY-PARSE-003, HLR-REPLAY-PARSE-004, HLR-REPLAY-PARSE-005*
+
+### LLR-REPLAY-PARSE-004: Pure In-Memory Parsing
+Saved replay input parsing shall be a pure in-memory operation over `&str` input and shall write parsed frames into a caller-provided output buffer.
+*Traces to: HLR-REPLAY-PARSE-006*
+
+### LLR-REPLAY-PARSE-005: Parse/Execute Separation
+Saved replay input parsing shall not execute replay frames; execution remains owned by `execute_replay(&[ReplayFrame])`.
+*Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
