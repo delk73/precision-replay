@@ -12,7 +12,6 @@
 .DS_Store
 .vscode/
 .idea/
-diff.txt
 .codex/
 AGENTS.md
 tests/__pycache__/
