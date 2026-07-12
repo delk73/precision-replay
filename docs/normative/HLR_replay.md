@@ -64,3 +64,24 @@ Replay checking shall fail when expected witness does not match generated witnes
 
 ### HLR-REPLAY-CHECK-008: Result Mismatch Failure
 Replay checking shall fail when expected result does not match generated result.
+
+
+## 4. Admitted Observation Projection
+
+### HLR-REPLAY-PROJ-001: Admission-Gated Projection
+Canonical replay input shall be created only from an admitted raw ADC capture.
+
+### HLR-REPLAY-PROJ-002: Admitted Observations Only
+Projection shall include only admitted observations; rejected or malformed rows shall remain excluded.
+
+### HLR-REPLAY-PROJ-003: Admitted Capture Reference
+Canonical replay input shall identify the admitted source capture without defining how that reference is represented.
+
+### HLR-REPLAY-PROJ-004: Admitted Observation Summary Preservation
+Projection shall preserve `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and the admitted `timing_claim`.
+
+### HLR-REPLAY-PROJ-005: Optional Context Preservation
+Projection shall preserve `context_id` when present and shall not infer `context_id` when absent.
+
+### HLR-REPLAY-PROJ-006: Deterministic Projection
+Projection shall be deterministic and shall not add claims beyond the admitted source evidence.
