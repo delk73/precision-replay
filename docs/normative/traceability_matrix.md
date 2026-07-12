@@ -41,6 +41,17 @@ This document records the current traceability links and verification status bet
 | `tools/check_replay.py` | **HLR-REPLAY-CHECK-001** / **HLR-REPLAY-CHECK-005** / **HLR-REPLAY-CHECK-006** / **HLR-REPLAY-CHECK-007** / **HLR-REPLAY-CHECK-008** / **LLR-REPLAY-CHECK-001** / **LLR-REPLAY-CHECK-003** / **LLR-REPLAY-CHECK-005** / **LLR-REPLAY-CHECK-006** | Reads the retained replay artifact path, invokes the checked-in Rust replay checker entrypoint, compares retained expected witness/result files, and exits nonzero on parse, replay, witness, or result failure. |
 | `make replay-check` | **HLR-REPLAY-CHECK-001** / **LLR-REPLAY-CHECK-004** | Provides the public retained replay checker command and prints `parse=pass`, `replay=pass`, `witness=pass`, and `result=pass` on success. |
 
+### 2.1 Admitted Observation Projection
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| Pending observation projection implementation | **HLR-REPLAY-PROJ-001** / **LLR-REPLAY-PROJ-001** | Requires successful raw ADC capture admission before projection. Implementation and verification are pending. |
+| Pending observation projection implementation | **HLR-REPLAY-PROJ-002** / **LLR-REPLAY-PROJ-002** | Restricts projection to admitted observations and excludes rejected or malformed rows. Implementation and verification are pending. |
+| Pending observation projection implementation | **HLR-REPLAY-PROJ-003** / **LLR-REPLAY-PROJ-003** | Requires identification of the admitted source capture. Source-reference representation, implementation, and verification are pending. |
+| Pending observation projection implementation | **HLR-REPLAY-PROJ-004** / **LLR-REPLAY-PROJ-004** | Requires preservation of `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and the admitted `timing_claim`. Implementation and verification are pending. |
+| Pending observation projection implementation | **HLR-REPLAY-PROJ-005** / **LLR-REPLAY-PROJ-005** | Requires preservation of `context_id` when present and omission when absent. Implementation and verification are pending. |
+| Pending observation projection implementation | **HLR-REPLAY-PROJ-006** / **LLR-REPLAY-PROJ-006** | Requires deterministic projection without adding claims beyond the admitted source evidence. Implementation and verification are pending. |
+
 ---
 
 ## 3. Target Witness Runtime

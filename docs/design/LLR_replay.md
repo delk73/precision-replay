@@ -75,3 +75,30 @@ The retained replay checker shall run parse, replay, witness, and result stages 
 ### LLR-REPLAY-CHECK-006: Checker Failure Behavior
 The retained replay checker shall exit nonzero for parse failure, replay rejection, witness mismatch, and result mismatch.
 *Traces to: HLR-REPLAY-CHECK-002, HLR-REPLAY-CHECK-003, HLR-REPLAY-CHECK-007, HLR-REPLAY-CHECK-008*
+
+
+## 6. Admitted Observation Projection
+
+### LLR-REPLAY-PROJ-001: Admission Precondition
+Projection shall require successful raw ADC capture admission before it begins.
+*Traces to: HLR-REPLAY-PROJ-001*
+
+### LLR-REPLAY-PROJ-002: Admitted Row Selection
+Projection shall include only admitted observations and shall exclude rejected or malformed rows.
+*Traces to: HLR-REPLAY-PROJ-002*
+
+### LLR-REPLAY-PROJ-003: Source Reference Preservation
+Projection shall preserve a reference to the admitted source capture without defining how that reference is represented.
+*Traces to: HLR-REPLAY-PROJ-003*
+
+### LLR-REPLAY-PROJ-004: Observation Summary Preservation
+Projection shall preserve the admitted values of `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and `timing_claim`.
+*Traces to: HLR-REPLAY-PROJ-004*
+
+### LLR-REPLAY-PROJ-005: Context Preservation
+Projection shall preserve `context_id` when present and omit it when absent.
+*Traces to: HLR-REPLAY-PROJ-005*
+
+### LLR-REPLAY-PROJ-006: Stable Projection
+The same admitted observations and metadata shall produce the same replay input.
+*Traces to: HLR-REPLAY-PROJ-006*
