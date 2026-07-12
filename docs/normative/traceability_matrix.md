@@ -2,6 +2,30 @@
 
 This document records the current traceability links and verification status between active behavioral and system requirements and their implementation blocks. It distinguishes active proofs, implementation-local tests, runtime traceability, and pending proof obligations rather than asserting that every traceability row is fully verified.
 
+## Traceability Row-Class Policy
+
+The traceability matrix intentionally uses more than one table shape so software implementation mappings and evidence-boundary claims remain structurally distinct before any later section reorganization.
+
+### Implementation Traceability Rows
+
+Use implementation traceability rows when a requirement maps primarily to software, tooling, retained software artifacts, parser behavior, executor behavior, checker behavior, or pending software implementation.
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+
+Column 1 identifies the implementation block. Column 2 identifies the requirement IDs. Column 3 records the mapping, verification status, tests, proof status, retained evidence, or pending implementation status.
+
+### Evidence-Boundary Rows
+
+Use evidence-boundary rows when a requirement maps to observed evidence, retained hardware-adjacent evidence, admitted observations, declared context, envelope judgment, or any claim that could be overread as calibration, timing proof, signal fidelity, stimulus sufficiency, hardware qualification, release readiness, or certification posture.
+
+| Requirement | Evidence / Implementation | Verification / Status | Boundary |
+| :--- | :--- | :--- | :--- |
+
+Column 1 identifies the requirement IDs. Column 2 identifies the evidence and/or implementation supporting the claim. Column 3 records what has actually been checked. Column 4 states the bounded claim and exclusions.
+
+The Boundary column is not optional commentary. For evidence-boundary rows, it is part of the traceability claim and must be preserved during edits.
+
 ---
 
 ## 1. Fixed-Point Math
