@@ -6,6 +6,51 @@ use core::ops::{Add, Div, Mul, Sub};
 #[repr(transparent)]
 pub struct I64F64(pub i128);
 
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub(crate) enum ArithmeticError {
+    AdditionOverflow,
+    SubtractionOverflow,
+    CrossTermOverflow,
+    MultiplicativeSaturation,
+    BitPoolCompositionFailure,
+    CapacityBoundOverflow,
+    DivisionByZero,
+    DivisionNumeratorShiftOverflow,
+    IntegerDivisionOverflow,
+}
+
+#[cold]
+#[track_caller]
+fn panic_arithmetic<T>(error: ArithmeticError) -> T {
+    match error {
+        ArithmeticError::AdditionOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: I64F64 Addition Overflow")
+        }
+        ArithmeticError::SubtractionOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: I64F64 Subtraction Overflow")
+        }
+        ArithmeticError::CrossTermOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: Cross Term Overflow")
+        }
+        ArithmeticError::MultiplicativeSaturation => {
+            panic!("CRITICAL MATH EXCEPTION: Multiplicative Saturation")
+        }
+        ArithmeticError::BitPoolCompositionFailure => {
+            panic!("CRITICAL MATH EXCEPTION: Bit Pool Composition Failure")
+        }
+        ArithmeticError::CapacityBoundOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: Capacity Bound Overflow")
+        }
+        ArithmeticError::DivisionByZero => panic!("CRITICAL MATH EXCEPTION: Division By Zero"),
+        ArithmeticError::DivisionNumeratorShiftOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: I64F64 Division Numerator Shift Overflow")
+        }
+        ArithmeticError::IntegerDivisionOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: I64F64 Integer Division Overflow")
+        }
+    }
+}
+
 impl I64F64 {
     pub const BITS: u32 = 128;
     pub const FRAC_BITS: u32 = 64;
@@ -25,7 +70,10 @@ impl I64F64 {
     /// primitive bypass casting, and partial product generation.
     /// Returns (out_negative, ll, cross_lo, cross_hi, hh)
     #[inline]
-    fn checked_mul_matrix(self, rhs: Self) -> Option<(bool, u128, u128, u128, u128)> {
+    fn fallible_mul_matrix(
+        self,
+        rhs: Self,
+    ) -> Result<(bool, u128, u128, u128, u128), ArithmeticError> {
         let a = self.0;
         let b = rhs.0;
 
@@ -55,12 +103,14 @@ impl I64F64 {
         let hh = a_hi.wrapping_mul(b_hi);
 
         // 5. CROSS TERM ACCUMULATION
-        let cross_sum = lh.checked_add(hl)?;
+        let cross_sum = lh
+            .checked_add(hl)
+            .ok_or(ArithmeticError::CrossTermOverflow)?;
 
         let cross_lo = cross_sum << 64;
         let cross_hi = cross_sum >> 64;
 
-        Some((out_negative, ll, cross_lo, cross_hi, hh))
+        Ok((out_negative, ll, cross_lo, cross_hi, hh))
     }
 
     /// Internal multiplication matrix core that handles sign isolation,
@@ -68,33 +118,39 @@ impl I64F64 {
     /// Returns (out_negative, ll, cross_lo, cross_hi, hh)
     #[inline]
     fn execute_mul_matrix(self, rhs: Self) -> (bool, u128, u128, u128, u128) {
-        match self.checked_mul_matrix(rhs) {
-            Some(matrix) => matrix,
-            None => panic!("CRITICAL MATH EXCEPTION: Cross Term Overflow"),
+        match self.fallible_mul_matrix(rhs) {
+            Ok(matrix) => matrix,
+            Err(error) => panic_arithmetic(error),
         }
     }
 
     #[inline]
-    pub(crate) fn checked_add(self, rhs: Self) -> Option<Self> {
-        self.0.checked_add(rhs.0).map(Self)
+    pub(crate) fn fallible_add(self, rhs: Self) -> Result<Self, ArithmeticError> {
+        self.0
+            .checked_add(rhs.0)
+            .map(Self)
+            .ok_or(ArithmeticError::AdditionOverflow)
     }
 
     #[inline]
-    pub(crate) fn checked_sub(self, rhs: Self) -> Option<Self> {
-        self.0.checked_sub(rhs.0).map(Self)
+    pub(crate) fn fallible_sub(self, rhs: Self) -> Result<Self, ArithmeticError> {
+        self.0
+            .checked_sub(rhs.0)
+            .map(Self)
+            .ok_or(ArithmeticError::SubtractionOverflow)
     }
 
     #[inline]
-    pub(crate) fn checked_mul(self, rhs: Self) -> Option<Self> {
+    pub(crate) fn fallible_mul(self, rhs: Self) -> Result<Self, ArithmeticError> {
         if self.0 == 0 || rhs.0 == 0 {
-            return Some(Self(0));
+            return Ok(Self(0));
         }
 
-        let (out_negative, ll, cross_lo, cross_hi, hh) = self.checked_mul_matrix(rhs)?;
+        let (out_negative, ll, cross_lo, cross_hi, hh) = self.fallible_mul_matrix(rhs)?;
 
         // HIGH-LIMB CAPACITY GATE AFTER 64-BIT TRUNCATION
         if hh > 0xFFFF_FFFF_FFFF_FFFF {
-            return None;
+            return Err(ArithmeticError::MultiplicativeSaturation);
         }
 
         // RAW TRUNCATION ALIGNMENT SHIFT
@@ -103,36 +159,44 @@ impl I64F64 {
         let ll_scaled = ll >> 64;
         let final_abs_bits = hh_scaled
             .checked_add(cross_sum)
-            .and_then(|value| value.checked_add(ll_scaled))?;
+            .and_then(|value| value.checked_add(ll_scaled))
+            .ok_or(ArithmeticError::BitPoolCompositionFailure)?;
 
         // CAPACITY BOUNDARY CHECK
         if final_abs_bits > i128::MAX as u128 {
             if out_negative && final_abs_bits == (i128::MIN as u128) {
-                return Some(Self(i128::MIN));
+                return Ok(Self(i128::MIN));
             }
-            return None;
+            return Err(ArithmeticError::CapacityBoundOverflow);
         }
 
-        let final_signed = i128::try_from(final_abs_bits).ok()?;
+        let final_signed =
+            i128::try_from(final_abs_bits).map_err(|_| ArithmeticError::CapacityBoundOverflow)?;
         if out_negative {
-            final_signed.checked_neg().map(Self)
+            final_signed
+                .checked_neg()
+                .map(Self)
+                .ok_or(ArithmeticError::CapacityBoundOverflow)
         } else {
-            Some(Self(final_signed))
+            Ok(Self(final_signed))
         }
     }
 
     #[inline]
-    pub(crate) fn checked_div(self, rhs: Self) -> Option<Self> {
+    pub(crate) fn fallible_div(self, rhs: Self) -> Result<Self, ArithmeticError> {
         if rhs.0 == 0 {
-            return None;
+            return Err(ArithmeticError::DivisionByZero);
         }
         let leading_zeros = self.0.leading_zeros();
         let leading_ones = self.0.leading_ones();
         if (self.0 > 0 && leading_zeros < 64) || (self.0 < 0 && leading_ones < 64) {
-            return None;
+            return Err(ArithmeticError::DivisionNumeratorShiftOverflow);
         }
         let shifted_numerator = self.0 << Self::FRAC_BITS;
-        shifted_numerator.checked_div(rhs.0).map(Self)
+        shifted_numerator
+            .checked_div(rhs.0)
+            .map(Self)
+            .ok_or(ArithmeticError::IntegerDivisionOverflow)
     }
 
     /// Explicit multiplier utilizing branch-free convergent rounding (Banker's Rounding).
@@ -213,43 +277,7 @@ impl Mul for I64F64 {
     /// Tailored for stateless routing, FIR pipelines, and maximum execution cycle efficiency.
     #[inline]
     fn mul(self, rhs: Self) -> Self::Output {
-        if self.0 == 0 || rhs.0 == 0 {
-            return Self(0);
-        }
-
-        let (out_negative, ll, cross_lo, cross_hi, hh) = self.execute_mul_matrix(rhs);
-
-        // HIGH-LIMB CAPACITY GATE AFTER 64-BIT TRUNCATION
-        if hh > 0xFFFF_FFFF_FFFF_FFFF {
-            panic!("CRITICAL MATH EXCEPTION: Multiplicative Saturation");
-        }
-
-        // RAW TRUNCATION ALIGNMENT SHIFT
-        let cross_sum = (cross_hi << 64) | (cross_lo >> 64);
-        let hh_scaled = hh << 64;
-        let ll_scaled = ll >> 64;
-        let final_abs_bits = match hh_scaled
-            .checked_add(cross_sum)
-            .and_then(|value| value.checked_add(ll_scaled))
-        {
-            Some(val) => val,
-            None => panic!("CRITICAL MATH EXCEPTION: Bit Pool Composition Failure"),
-        };
-
-        // CAPACITY BOUNDARY CHECK
-        if final_abs_bits > i128::MAX as u128 {
-            if out_negative && final_abs_bits == (i128::MIN as u128) {
-                return Self(i128::MIN);
-            }
-            panic!("CRITICAL MATH EXCEPTION: Capacity Bound Overflow");
-        }
-
-        let final_signed = i128::try_from(final_abs_bits).unwrap();
-        if out_negative {
-            Self(final_signed.checked_neg().unwrap())
-        } else {
-            Self(final_signed)
-        }
+        self.fallible_mul(rhs).unwrap_or_else(panic_arithmetic)
     }
 }
 
@@ -287,10 +315,7 @@ impl Add for I64F64 {
     type Output = Self;
     #[inline]
     fn add(self, rhs: Self) -> Self::Output {
-        match self.0.checked_add(rhs.0) {
-            Some(val) => Self(val),
-            None => panic!("CRITICAL MATH EXCEPTION: I64F64 Addition Overflow"),
-        }
+        self.fallible_add(rhs).unwrap_or_else(panic_arithmetic)
     }
 }
 
@@ -298,10 +323,7 @@ impl Sub for I64F64 {
     type Output = Self;
     #[inline]
     fn sub(self, rhs: Self) -> Self::Output {
-        match self.0.checked_sub(rhs.0) {
-            Some(val) => Self(val),
-            None => panic!("CRITICAL MATH EXCEPTION: I64F64 Subtraction Overflow"),
-        }
+        self.fallible_sub(rhs).unwrap_or_else(panic_arithmetic)
     }
 }
 
@@ -309,19 +331,7 @@ impl Div for I64F64 {
     type Output = Self;
     #[inline]
     fn div(self, rhs: Self) -> Self::Output {
-        if rhs.0 == 0 {
-            panic!("CRITICAL MATH EXCEPTION: Division By Zero");
-        }
-        let leading_zeros = self.0.leading_zeros();
-        let leading_ones = self.0.leading_ones();
-        if (self.0 > 0 && leading_zeros < 64) || (self.0 < 0 && leading_ones < 64) {
-            panic!("CRITICAL MATH EXCEPTION: I64F64 Division Numerator Shift Overflow");
-        }
-        let shifted_numerator = self.0 << Self::FRAC_BITS;
-        match shifted_numerator.checked_div(rhs.0) {
-            Some(val) => Self(val),
-            None => panic!("CRITICAL MATH EXCEPTION: I64F64 Integer Division Overflow"),
-        }
+        self.fallible_div(rhs).unwrap_or_else(panic_arithmetic)
     }
 }
 
@@ -341,11 +351,27 @@ mod tests {
     }
 
     #[test]
+    fn test_fallible_add_matches_public_addition_when_successful() {
+        let lhs = I64F64::from_bits(I64F64::SCALE * 2);
+        let rhs = I64F64::from_bits(I64F64::SCALE * 3);
+
+        assert_eq!(lhs.fallible_add(rhs).unwrap(), lhs + rhs);
+    }
+
+    #[test]
     #[should_panic(expected = "CRITICAL MATH EXCEPTION: I64F64 Subtraction Overflow")]
     fn test_subtraction_overflow_gate() {
         let min = I64F64::from_bits(i128::MIN);
         let one = I64F64::from_bits(1);
         let _ = min - one;
+    }
+
+    #[test]
+    fn test_fallible_sub_matches_public_subtraction_when_successful() {
+        let lhs = I64F64::from_bits(I64F64::SCALE * 5);
+        let rhs = I64F64::from_bits(I64F64::SCALE * 3);
+
+        assert_eq!(lhs.fallible_sub(rhs).unwrap(), lhs - rhs);
     }
 
     // =========================================================================
@@ -365,6 +391,22 @@ mod tests {
         let huge = I64F64::from_bits(i128::MAX - 1);
         let one = I64F64::from_bits(I64F64::SCALE);
         let _ = huge / one;
+    }
+
+    #[test]
+    #[should_panic(expected = "CRITICAL MATH EXCEPTION: I64F64 Integer Division Overflow")]
+    fn test_div_integer_overflow() {
+        let min_shifted_numerator = I64F64::from_bits(i128::MIN >> I64F64::FRAC_BITS);
+        let negative_raw_one = I64F64::from_bits(-1);
+        let _ = min_shifted_numerator / negative_raw_one;
+    }
+
+    #[test]
+    fn test_fallible_div_matches_public_division_when_successful() {
+        let lhs = I64F64::from_bits(I64F64::SCALE / 4);
+        let rhs = I64F64::from_bits(I64F64::SCALE / 2);
+
+        assert_eq!(lhs.fallible_div(rhs).unwrap(), lhs / rhs);
     }
 
     // =========================================================================
@@ -422,6 +464,22 @@ mod tests {
         assert_eq!(negative_one * negative_one, one);
     }
 
+    #[test]
+    fn test_fallible_mul_matches_public_multiplication_when_successful() {
+        let lhs = I64F64::from_bits(I64F64::SCALE * 3);
+        let rhs = I64F64::from_bits(I64F64::SCALE * 2);
+
+        assert_eq!(lhs.fallible_mul(rhs).unwrap(), lhs * rhs);
+    }
+
+    #[test]
+    #[should_panic(expected = "CRITICAL MATH EXCEPTION: Multiplicative Saturation")]
+    fn test_raw_mul_multiplicative_saturation_message() {
+        let lhs = I64F64::from_bits(i128::MAX);
+        let rhs = I64F64::from_bits(i128::MAX);
+        let _ = lhs * rhs;
+    }
+
     // =========================================================================
     // REQ TRACE: LLR-REPLAY-MATH-OPS-002 (Step 1) - SIGN ISOLATION & PRIMITIVE BYPASS
     // =========================================================================
@@ -462,7 +520,10 @@ mod tests {
         let a = I64F64::from_bits(bit_a);
         let b = I64F64::from_bits(bit_b);
 
-        assert!(a.checked_mul(b).is_none());
+        assert_eq!(
+            a.fallible_mul(b),
+            Err(ArithmeticError::MultiplicativeSaturation)
+        );
     }
 
     // =========================================================================
