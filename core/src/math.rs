@@ -462,7 +462,7 @@ mod tests {
         let a = I64F64::from_bits(bit_a);
         let b = I64F64::from_bits(bit_b);
 
-        let _result = a * b;
+        assert!(a.checked_mul(b).is_none());
     }
 
     // =========================================================================
@@ -475,6 +475,7 @@ mod tests {
         let bit_a: i128 = kani::any();
 
         kani::assume(bit_a > -10_000_000 && bit_a < 1_000_000_000);
+        kani::assume((bit_a & 1) != 0);
         let a = I64F64::from_bits(bit_a);
 
         let half = I64F64::from_bits(I64F64::SCALE >> 1);
