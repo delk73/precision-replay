@@ -68,6 +68,12 @@ Replay checking shall fail when expected witness does not match generated witnes
 ### HLR-REPLAY-CHECK-008: Result Mismatch Failure
 Replay checking shall fail when expected result does not match generated result.
 
+### HLR-REPLAY-CHECK-009: Exact Checker Input Path Validation
+The checked-in replay checker entrypoint shall require exactly one replay input path.
+
+### HLR-REPLAY-CHECK-010: Deterministic Checker Failure Diagnostics
+The checked-in replay checker entrypoint shall report invalid invocation, input read failure, parse rejection, and replay rejection with deterministic diagnostics and exit codes.
+
 
 ## 4. Admitted Observation Projection
 

@@ -80,6 +80,14 @@ The retained replay checker shall run parse, replay, witness, and result stages 
 The retained replay checker shall exit nonzero for parse failure, replay rejection, witness mismatch, and result mismatch.
 *Traces to: HLR-REPLAY-CHECK-002, HLR-REPLAY-CHECK-003, HLR-REPLAY-CHECK-007, HLR-REPLAY-CHECK-008*
 
+### LLR-REPLAY-CHECK-007: Checked-In Entrypoint Argument Arity
+The checked-in replay checker entrypoint shall accept exactly one replay input path and shall reject missing or extra arguments with exit code `2` and diagnostic `expected exactly one replay input path`.
+*Traces to: HLR-REPLAY-CHECK-009*
+
+### LLR-REPLAY-CHECK-008: Checked-In Entrypoint Stable Failure Diagnostics
+The checked-in replay checker entrypoint shall report input read failure with exit code `3` and diagnostic `input read failed`, parse rejection with exit code `10` and diagnostic `parse failed: <stable-identifier>`, and replay non-acceptance with exit code `20` and diagnostics for incomplete replay, invalid order, arithmetic trap, or expected-result mismatch without Debug formatting or environment-dependent details.
+*Traces to: HLR-REPLAY-CHECK-010*
+
 
 ## 6. Admitted Observation Projection
 
