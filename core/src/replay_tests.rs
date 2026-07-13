@@ -88,6 +88,117 @@ fn valid_nonzero_math_div_replay_accepts() {
     assert_eq!(result.rejection_reason, None);
 }
 
+fn assert_arithmetic_trap_rejection(frames: &[ReplayFrame]) {
+    let result = execute_replay(frames);
+
+    assert_eq!(result.state, ReplayExecutionState::Rejected);
+    assert_eq!(result.result_bits, None);
+    assert_eq!(
+        result.rejection_reason,
+        Some(ReplayRejectionReason::ArithmeticTrap)
+    );
+}
+
+#[test]
+fn addition_overflow_replay_rejects() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: i128::MAX,
+            rhs_bits: 1,
+        },
+        ReplayFrame::Add,
+    ];
+
+    assert_arithmetic_trap_rejection(&frames);
+}
+
+#[test]
+fn subtraction_overflow_replay_rejects() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: i128::MIN,
+            rhs_bits: 1,
+        },
+        ReplayFrame::Sub,
+    ];
+
+    assert_arithmetic_trap_rejection(&frames);
+}
+
+#[test]
+fn multiplication_trap_replay_rejects() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: i128::MAX,
+            rhs_bits: i128::MAX,
+        },
+        ReplayFrame::Mul,
+    ];
+
+    assert_arithmetic_trap_rejection(&frames);
+}
+
+#[test]
+fn division_by_zero_replay_rejects() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: I64F64::SCALE,
+            rhs_bits: 0,
+        },
+        ReplayFrame::Div,
+    ];
+
+    assert_arithmetic_trap_rejection(&frames);
+}
+
+#[test]
+fn division_numerator_shift_overflow_replay_rejects() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: i128::MAX - 1,
+            rhs_bits: I64F64::SCALE,
+        },
+        ReplayFrame::Div,
+    ];
+
+    assert_arithmetic_trap_rejection(&frames);
+}
+
+#[test]
+fn integer_division_overflow_replay_rejects() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: -(1i128 << 63),
+            rhs_bits: -1,
+        },
+        ReplayFrame::Div,
+    ];
+
+    assert_arithmetic_trap_rejection(&frames);
+}
+
+#[test]
+fn arithmetic_trap_rejection_is_repeatable() {
+    let frames = [
+        ReplayFrame::LoadOperands {
+            lhs_bits: i128::MAX,
+            rhs_bits: 1,
+        },
+        ReplayFrame::Add,
+    ];
+
+    let first = execute_replay(&frames);
+    let second = execute_replay(&frames);
+
+    assert_eq!(first, second);
+    assert_eq!(first.state, ReplayExecutionState::Rejected);
+    assert_eq!(first.result_bits, None);
+    assert_eq!(
+        first.rejection_reason,
+        Some(ReplayRejectionReason::ArithmeticTrap)
+    );
+}
+
 #[test]
 fn math_op_before_operands_rejects() {
     let frames = [ReplayFrame::Add];

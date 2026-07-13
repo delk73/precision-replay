@@ -1,5 +1,3 @@
-use core::ops::{Add, Div, Mul, Sub};
-
 use crate::math::I64F64;
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
@@ -54,6 +52,7 @@ pub enum ReplayExecutionState {
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum ReplayRejectionReason {
     InvalidOrder,
+    ArithmeticTrap,
     ExpectedResultMismatch {
         expected_bits: i128,
         actual_bits: i128,
@@ -251,7 +250,13 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                result = Some(Add::add(lhs, rhs));
+                let Some(next_result) = lhs.checked_add(rhs) else {
+                    return ReplayExecutionResult::rejected(
+                        ReplayRejectionReason::ArithmeticTrap,
+                        result,
+                    );
+                };
+                result = Some(next_result);
                 phase = ExecutionPhase::ResultProduced;
             }
             ReplayFrame::Sub => {
@@ -267,7 +272,13 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                result = Some(Sub::sub(lhs, rhs));
+                let Some(next_result) = lhs.checked_sub(rhs) else {
+                    return ReplayExecutionResult::rejected(
+                        ReplayRejectionReason::ArithmeticTrap,
+                        result,
+                    );
+                };
+                result = Some(next_result);
                 phase = ExecutionPhase::ResultProduced;
             }
             ReplayFrame::Mul => {
@@ -283,7 +294,13 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                result = Some(Mul::mul(lhs, rhs));
+                let Some(next_result) = lhs.checked_mul(rhs) else {
+                    return ReplayExecutionResult::rejected(
+                        ReplayRejectionReason::ArithmeticTrap,
+                        result,
+                    );
+                };
+                result = Some(next_result);
                 phase = ExecutionPhase::ResultProduced;
             }
             ReplayFrame::Div => {
@@ -299,7 +316,13 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                result = Some(Div::div(lhs, rhs));
+                let Some(next_result) = lhs.checked_div(rhs) else {
+                    return ReplayExecutionResult::rejected(
+                        ReplayRejectionReason::ArithmeticTrap,
+                        result,
+                    );
+                };
+                result = Some(next_result);
                 phase = ExecutionPhase::ResultProduced;
             }
             ReplayFrame::ExpectResultBits(expected_bits) => {
