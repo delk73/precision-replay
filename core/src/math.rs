@@ -25,7 +25,7 @@ impl I64F64 {
     /// primitive bypass casting, and partial product generation.
     /// Returns (out_negative, ll, cross_lo, cross_hi, hh)
     #[inline]
-    fn execute_mul_matrix(self, rhs: Self) -> (bool, u128, u128, u128, u128) {
+    fn checked_mul_matrix(self, rhs: Self) -> Option<(bool, u128, u128, u128, u128)> {
         let a = self.0;
         let b = rhs.0;
 
@@ -55,15 +55,84 @@ impl I64F64 {
         let hh = a_hi.wrapping_mul(b_hi);
 
         // 5. CROSS TERM ACCUMULATION
-        let cross_sum = match lh.checked_add(hl) {
-            Some(val) => val,
-            None => panic!("CRITICAL MATH EXCEPTION: Cross Term Overflow"),
-        };
+        let cross_sum = lh.checked_add(hl)?;
 
         let cross_lo = cross_sum << 64;
         let cross_hi = cross_sum >> 64;
 
-        (out_negative, ll, cross_lo, cross_hi, hh)
+        Some((out_negative, ll, cross_lo, cross_hi, hh))
+    }
+
+    /// Internal multiplication matrix core that handles sign isolation,
+    /// primitive bypass casting, and partial product generation.
+    /// Returns (out_negative, ll, cross_lo, cross_hi, hh)
+    #[inline]
+    fn execute_mul_matrix(self, rhs: Self) -> (bool, u128, u128, u128, u128) {
+        match self.checked_mul_matrix(rhs) {
+            Some(matrix) => matrix,
+            None => panic!("CRITICAL MATH EXCEPTION: Cross Term Overflow"),
+        }
+    }
+
+    #[inline]
+    pub(crate) fn checked_add(self, rhs: Self) -> Option<Self> {
+        self.0.checked_add(rhs.0).map(Self)
+    }
+
+    #[inline]
+    pub(crate) fn checked_sub(self, rhs: Self) -> Option<Self> {
+        self.0.checked_sub(rhs.0).map(Self)
+    }
+
+    #[inline]
+    pub(crate) fn checked_mul(self, rhs: Self) -> Option<Self> {
+        if self.0 == 0 || rhs.0 == 0 {
+            return Some(Self(0));
+        }
+
+        let (out_negative, ll, cross_lo, cross_hi, hh) = self.checked_mul_matrix(rhs)?;
+
+        // HIGH-LIMB CAPACITY GATE AFTER 64-BIT TRUNCATION
+        if hh > 0xFFFF_FFFF_FFFF_FFFF {
+            return None;
+        }
+
+        // RAW TRUNCATION ALIGNMENT SHIFT
+        let cross_sum = (cross_hi << 64) | (cross_lo >> 64);
+        let hh_scaled = hh << 64;
+        let ll_scaled = ll >> 64;
+        let final_abs_bits = hh_scaled
+            .checked_add(cross_sum)
+            .and_then(|value| value.checked_add(ll_scaled))?;
+
+        // CAPACITY BOUNDARY CHECK
+        if final_abs_bits > i128::MAX as u128 {
+            if out_negative && final_abs_bits == (i128::MIN as u128) {
+                return Some(Self(i128::MIN));
+            }
+            return None;
+        }
+
+        let final_signed = i128::try_from(final_abs_bits).ok()?;
+        if out_negative {
+            final_signed.checked_neg().map(Self)
+        } else {
+            Some(Self(final_signed))
+        }
+    }
+
+    #[inline]
+    pub(crate) fn checked_div(self, rhs: Self) -> Option<Self> {
+        if rhs.0 == 0 {
+            return None;
+        }
+        let leading_zeros = self.0.leading_zeros();
+        let leading_ones = self.0.leading_ones();
+        if (self.0 > 0 && leading_zeros < 64) || (self.0 < 0 && leading_ones < 64) {
+            return None;
+        }
+        let shifted_numerator = self.0 << Self::FRAC_BITS;
+        shifted_numerator.checked_div(rhs.0).map(Self)
     }
 
     /// Explicit multiplier utilizing branch-free convergent rounding (Banker's Rounding).

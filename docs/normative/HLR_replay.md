@@ -17,6 +17,9 @@ Replay execution shall reject expected-result mismatch.
 ### HLR-REPLAY-EXEC-005: Deterministic Execution Result
 Replay execution shall expose a deterministic execution result.
 
+### HLR-REPLAY-EXEC-006: Arithmetic Trap Rejection
+Replay execution shall reject deterministically when an initial math lane operation would trigger an existing `I64F64` arithmetic trap.
+
 
 ## 2. Saved Replay Input Parsing
 

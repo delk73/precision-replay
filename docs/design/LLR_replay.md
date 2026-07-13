@@ -13,8 +13,8 @@ Replay execution shall define execution states sufficient to distinguish no oper
 *Traces to: HLR-REPLAY-EXEC-003, HLR-REPLAY-EXEC-004, HLR-REPLAY-EXEC-005*
 
 ### LLR-REPLAY-EXEC-003: Replay Rejection Reasons
-Replay execution shall define rejection reasons for invalid execution order and expected-result mismatch.
-*Traces to: HLR-REPLAY-EXEC-003, HLR-REPLAY-EXEC-004*
+Replay execution shall define rejection reasons for invalid execution order, expected-result mismatch, and arithmetic trap rejection.
+*Traces to: HLR-REPLAY-EXEC-003, HLR-REPLAY-EXEC-004, HLR-REPLAY-EXEC-006*
 
 ## 3. Execution Semantics
 
@@ -25,6 +25,10 @@ Replay execution shall execute as a pure in-memory operation over a frame slice.
 ### LLR-REPLAY-EXEC-005: Replay Repeatability
 Running the same frame slice twice shall produce the same execution result.
 *Traces to: HLR-REPLAY-EXEC-001, HLR-REPLAY-EXEC-005*
+
+### LLR-REPLAY-EXEC-006: Checked Arithmetic Trap Handling
+Replay execution shall use checked internal `I64F64` arithmetic paths for add, sub, mul, and div, and shall return the arithmetic-trap rejection reason without producing a new result when those paths report an existing arithmetic trap.
+*Traces to: HLR-REPLAY-EXEC-002, HLR-REPLAY-EXEC-005, HLR-REPLAY-EXEC-006*
 
 
 ## 4. Saved Input Parsing
