@@ -23,6 +23,7 @@ REQUIRED_COMMANDS = [
     "cargo check --workspace --locked",
     "cargo test --workspace --locked",
     "cargo clippy --workspace --locked -- -D warnings",
+    "make replay-check",
     "cargo check -p precision-replay-core --no-default-features --target thumbv7m-none-eabi --locked",
     "cargo check -p bsp-stm32 --no-default-features --features stm32f446 --target thumbv7m-none-eabi --locked",
     "cargo check -p bsp-pru --no-default-features --target thumbv7m-none-eabi --locked",

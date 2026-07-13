@@ -33,6 +33,9 @@ jobs:
       - name: Lint workspace
         run: cargo clippy --workspace --locked -- -D warnings
 
+      - name: Check retained replay
+        run: make replay-check
+
       - name: Check core without default features
         run: cargo check -p precision-replay-core --no-default-features --target thumbv7m-none-eabi --locked
 
