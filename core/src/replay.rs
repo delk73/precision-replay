@@ -250,7 +250,7 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                let Some(next_result) = lhs.checked_add(rhs) else {
+                let Ok(next_result) = lhs.fallible_add(rhs) else {
                     return ReplayExecutionResult::rejected(
                         ReplayRejectionReason::ArithmeticTrap,
                         result,
@@ -272,7 +272,7 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                let Some(next_result) = lhs.checked_sub(rhs) else {
+                let Ok(next_result) = lhs.fallible_sub(rhs) else {
                     return ReplayExecutionResult::rejected(
                         ReplayRejectionReason::ArithmeticTrap,
                         result,
@@ -294,7 +294,7 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                let Some(next_result) = lhs.checked_mul(rhs) else {
+                let Ok(next_result) = lhs.fallible_mul(rhs) else {
                     return ReplayExecutionResult::rejected(
                         ReplayRejectionReason::ArithmeticTrap,
                         result,
@@ -316,7 +316,7 @@ pub fn execute_replay(frames: &[ReplayFrame]) -> ReplayExecutionResult {
                         result,
                     );
                 }
-                let Some(next_result) = lhs.checked_div(rhs) else {
+                let Ok(next_result) = lhs.fallible_div(rhs) else {
                     return ReplayExecutionResult::rejected(
                         ReplayRejectionReason::ArithmeticTrap,
                         result,

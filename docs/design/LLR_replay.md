@@ -26,8 +26,8 @@ Replay execution shall execute as a pure in-memory operation over a frame slice.
 Running the same frame slice twice shall produce the same execution result.
 *Traces to: HLR-REPLAY-EXEC-001, HLR-REPLAY-EXEC-005*
 
-### LLR-REPLAY-EXEC-006: Checked Arithmetic Trap Handling
-Replay execution shall use checked internal `I64F64` arithmetic paths for add, sub, mul, and div, and shall return the arithmetic-trap rejection reason without producing a new result when those paths report an existing arithmetic trap.
+### LLR-REPLAY-EXEC-006: Shared Fallible Arithmetic Trap Handling
+Replay execution and the public `I64F64` add, sub, mul, and div operators shall share the same crate-internal fallible arithmetic paths; replay execution shall map any fallible arithmetic error to the arithmetic-trap rejection reason without producing a new result, while public operators shall map those errors to the existing trap panic messages.
 *Traces to: HLR-REPLAY-EXEC-002, HLR-REPLAY-EXEC-005, HLR-REPLAY-EXEC-006*
 
 
