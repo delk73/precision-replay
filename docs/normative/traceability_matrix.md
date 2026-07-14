@@ -52,6 +52,25 @@ The Boundary column is not optional commentary. For evidence-boundary rows, it i
 
 ## 2. Replay Execution
 
+### 2.1 Replay System Contract and Schema Ownership
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| Replay system contract requirements in `docs/normative/HLR_replay.md` | **HLR-REPLAY-SYS-001** / **HLR-REPLAY-SYS-002** | HLR-defined system boundary. The integrated math path and raw ADC source-evidence path are both active proof paths, but neither is defined as the complete replay system and neither math frames nor raw ADC observations are universal replay input. LLR, implementation, and verification for the broader system contract remain pending. |
+| Replay schema ownership requirements in `docs/normative/HLR_replay.md` | **HLR-REPLAY-SYS-003** / **HLR-REPLAY-SCHEMA-001** / **HLR-REPLAY-SCHEMA-002** / **HLR-REPLAY-SCHEMA-003** / **HLR-REPLAY-SCHEMA-004** / **HLR-REPLAY-SCHEMA-005** | HLR-defined / LLR-pending. Defines common retained-run structure ownership and schema ownership for input meaning, origins, state evolution, trace semantics, terminal behavior, and outcome comparison. No runtime implementation or verification is credited. |
+| Pending schema origin declaration model | **HLR-REPLAY-ORIGIN-001** | HLR-defined / LLR, implementation, and verification pending. Existing `math-i64f64-v1` artifacts demonstrate direct saved replay input but do not implement a general per-schema origin declaration model. |
+| Direct saved math replay input path | **HLR-REPLAY-ORIGIN-002** | Implemented and tested only for the initial `math-i64f64-v1` direct saved replay input lane through the parser, executor, retained artifacts, and checker rows below. |
+| Pending raw-ADC replay input projection origin | **HLR-REPLAY-ORIGIN-003** / **HLR-REPLAY-ORIGIN-004** | HLR-defined / LLR-pending for schema-permitted projection from admitted source evidence and admission only where the input origin requires it. Existing raw ADC admission is traced under witness requirements and does not implement replay projection. |
+
+### 2.2 Retained Run
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| Pending retained-run model | **HLR-REPLAY-RUN-001** / **HLR-REPLAY-RUN-002** | HLR-defined / LLR, implementation, and verification pending. Required immutable retained-run content and pre-execution validation are not implemented by the current expected witness/result files. |
+| Pending retained-run identity model | **HLR-REPLAY-RUN-003** / **HLR-REPLAY-RUN-004** | HLR-defined / LLR, implementation, and verification pending. Retained-run identity derivation and exclusion of generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results remain undefined below HLR level. |
+
+### 2.3 Saved Input Parsing and Initial Math Execution
+
 | Code Component / Implementation Block | Requirement ID | Traceability Verification |
 | :--- | :--- | :--- |
 | `ReplayFrame` in `core/src/replay.rs` | **HLR-REPLAY-EXEC-001** / **HLR-REPLAY-EXEC-002** / **LLR-REPLAY-EXEC-001** | Defines the public in-memory frame surface for loading operands, executing add/sub/mul/div math operations, and expecting result bits. |
@@ -61,22 +80,45 @@ The Boundary column is not optional commentary. For evidence-boundary rows, it i
 | `ReplayInputVersion`, `ReplayInputSchema`, `ParsedReplayInput`, and `ReplayParseError` in `core/src/replay.rs` | **HLR-REPLAY-PARSE-001** / **HLR-REPLAY-PARSE-002** / **HLR-REPLAY-PARSE-003** / **HLR-REPLAY-PARSE-004** / **HLR-REPLAY-PARSE-005** / **LLR-REPLAY-PARSE-001** / **LLR-REPLAY-PARSE-003** | Defines the accepted saved-input version/schema identity and the strict parser rejection surface. |
 | `parse_replay_input(...)` in `core/src/replay.rs` | **HLR-REPLAY-PARSE-001** / **HLR-REPLAY-PARSE-002** / **HLR-REPLAY-PARSE-003** / **HLR-REPLAY-PARSE-004** / **HLR-REPLAY-PARSE-005** / **HLR-REPLAY-PARSE-006** / **LLR-REPLAY-PARSE-001** / **LLR-REPLAY-PARSE-002** / **LLR-REPLAY-PARSE-003** / **LLR-REPLAY-PARSE-004** / **LLR-REPLAY-PARSE-005** | Parses `precision-replay-input v1` / `schema math-i64f64-v1` text into caller-provided replay frame storage without heap allocation, file I/O, witness output, checker commands, or replay execution. |
 | `core/src/replay_tests.rs` saved-input parser coverage | **HLR-REPLAY-PARSE-001** / **HLR-REPLAY-PARSE-002** / **HLR-REPLAY-PARSE-003** / **HLR-REPLAY-PARSE-004** / **HLR-REPLAY-PARSE-005** / **HLR-REPLAY-PARSE-006** / **LLR-REPLAY-PARSE-001** / **LLR-REPLAY-PARSE-002** / **LLR-REPLAY-PARSE-003** / **LLR-REPLAY-PARSE-004** / **LLR-REPLAY-PARSE-005** | Covers valid add/sub/mul/nonzero-div saved input parsing, parse-only separation from execution, unknown version, unknown schema/lane, unknown opcode, malformed rows, missing operand fields, invalid integer fields, and frame-capacity exhaustion. |
+
+### 2.4 Retained Math Checker Path
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
 | `artifacts/replay/math-i64f64-v1/input.txt`, `expected_witness.txt`, and `expected_result.txt` | **HLR-REPLAY-CHECK-001** / **HLR-REPLAY-CHECK-004** / **HLR-REPLAY-CHECK-005** / **HLR-REPLAY-CHECK-006** / **LLR-REPLAY-CHECK-001** / **LLR-REPLAY-CHECK-002** / **LLR-REPLAY-CHECK-003** | Retains the initial math lane saved replay input plus expected generated witness and checker result text. |
 | `core/examples/replay_check.rs` | **HLR-REPLAY-CHECK-002** / **HLR-REPLAY-CHECK-003** / **HLR-REPLAY-CHECK-004** / **HLR-REPLAY-CHECK-009** / **HLR-REPLAY-CHECK-010** / **LLR-REPLAY-CHECK-002** / **LLR-REPLAY-CHECK-005** / **LLR-REPLAY-CHECK-006** / **LLR-REPLAY-CHECK-007** / **LLR-REPLAY-CHECK-008** | Provides the checked-in Rust replay checker entrypoint that validates exact input-path arity, reads saved input, invokes `parse_replay_input` and `execute_replay`, emits deterministic replay witness text, and reports stable failure diagnostics and exit codes for parse rejection and replay non-acceptance, including incomplete replay. |
 | `tests/test_replay_check.py` | **HLR-REPLAY-CHECK-004** / **HLR-REPLAY-CHECK-009** / **HLR-REPLAY-CHECK-010** / **LLR-REPLAY-CHECK-002** / **LLR-REPLAY-CHECK-007** / **LLR-REPLAY-CHECK-008** | Black-box covers the checked-in Rust replay checker command boundary for successful witness output, missing and extra arguments, stable input-read failure, parse rejection, incomplete replay, invalid-order rejection, arithmetic-trap rejection, and expected-result mismatch diagnostics. |
 | `tools/check_replay.py` | **HLR-REPLAY-CHECK-001** / **HLR-REPLAY-CHECK-005** / **HLR-REPLAY-CHECK-006** / **HLR-REPLAY-CHECK-007** / **HLR-REPLAY-CHECK-008** / **LLR-REPLAY-CHECK-001** / **LLR-REPLAY-CHECK-003** / **LLR-REPLAY-CHECK-005** / **LLR-REPLAY-CHECK-006** | Reads the retained replay artifact path, invokes the checked-in Rust replay checker entrypoint, compares retained expected witness/result files, and exits nonzero on parse, replay, witness, or result failure. |
 | `make replay-check` | **HLR-REPLAY-CHECK-001** / **LLR-REPLAY-CHECK-004** | Provides the public retained replay checker command and prints `parse=pass`, `replay=pass`, `witness=pass`, and `result=pass` on success. |
 
-### 2.1 Admitted Observation Projection
+### 2.5 Raw ADC Replay Input Projection
 
 | Code Component / Implementation Block | Requirement ID | Traceability Verification |
 | :--- | :--- | :--- |
-| Pending observation projection implementation | **HLR-REPLAY-PROJ-001** / **LLR-REPLAY-PROJ-001** | Requires successful raw ADC capture admission before projection. Implementation and verification are pending. |
-| Pending observation projection implementation | **HLR-REPLAY-PROJ-002** / **LLR-REPLAY-PROJ-002** | Restricts projection to admitted observations and excludes rejected or malformed rows. Implementation and verification are pending. |
-| Pending observation projection implementation | **HLR-REPLAY-PROJ-003** / **LLR-REPLAY-PROJ-003** | Requires identification of the admitted source capture. Source-reference representation, implementation, and verification are pending. |
-| Pending observation projection implementation | **HLR-REPLAY-PROJ-004** / **LLR-REPLAY-PROJ-004** | Requires preservation of `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and the admitted `timing_claim`. Implementation and verification are pending. |
-| Pending observation projection implementation | **HLR-REPLAY-PROJ-005** / **LLR-REPLAY-PROJ-005** | Requires preservation of `context_id` when present and omission when absent. Implementation and verification are pending. |
-| Pending observation projection implementation | **HLR-REPLAY-PROJ-006** / **LLR-REPLAY-PROJ-006** | Requires deterministic projection without adding claims beyond the admitted source evidence. Implementation and verification are pending. |
+| Pending raw ADC projection implementation | **HLR-REPLAY-PROJ-001** / **LLR-REPLAY-PROJ-001** | Requires canonical replay input for a raw-ADC-derived replay schema to be created only from an admitted raw ADC capture. Implementation and verification are pending. |
+| Pending raw ADC projection implementation | **HLR-REPLAY-PROJ-002** / **LLR-REPLAY-PROJ-002** | Restricts raw-ADC-derived replay input projection to admitted observations and excludes rejected or malformed rows. Implementation and verification are pending. |
+| Pending raw ADC projection implementation | **HLR-REPLAY-PROJ-003** / **LLR-REPLAY-PROJ-003** | Requires raw-ADC-derived canonical replay input to identify the admitted source capture. Source-reference representation, implementation, and verification are pending. |
+| Pending raw ADC projection implementation | **HLR-REPLAY-PROJ-004** / **LLR-REPLAY-PROJ-004** | Requires raw-ADC-derived replay input projection to preserve `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and the admitted `timing_claim`. Implementation and verification are pending. |
+| Pending raw ADC projection implementation | **HLR-REPLAY-PROJ-005** / **LLR-REPLAY-PROJ-005** | Requires raw-ADC-derived replay input projection to preserve `context_id` when present and omit it when absent. Implementation and verification are pending. |
+| Pending raw ADC projection implementation | **HLR-REPLAY-PROJ-006** / **LLR-REPLAY-PROJ-006** | Requires deterministic raw-ADC-derived replay input projection without adding claims beyond the admitted source evidence. Implementation and verification are pending. |
+
+### 2.6 General Retained-Run Execution, Trace, and Comparison
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| Pending retained-run execution model | **HLR-REPLAY-EXEC-007** / **HLR-REPLAY-EXEC-008** / **HLR-REPLAY-EXEC-009** / **HLR-REPLAY-EXEC-010** / **HLR-REPLAY-EXEC-011** / **HLR-REPLAY-EXEC-012** | HLR-defined / LLR, implementation, and verification pending. Existing `execute_replay(...)` satisfies only the initial frame-based math execution HLRs and is not credited with the broader retained-run execution model. |
+| Pending retained-run trace model | **HLR-REPLAY-TRACE-001** / **HLR-REPLAY-TRACE-002** / **HLR-REPLAY-TRACE-003** | HLR-defined / LLR, implementation, and verification pending. Existing witness text is not a schema-defined reference trace model. |
+| Pending retained-run comparison model | **HLR-REPLAY-COMP-001** / **HLR-REPLAY-COMP-002** / **HLR-REPLAY-COMP-003** / **HLR-REPLAY-COMP-004** / **HLR-REPLAY-COMP-005** / **HLR-REPLAY-COMP-006** / **HLR-REPLAY-COMP-007** | HLR-defined / LLR, implementation, and verification pending. Existing checker witness/result comparison remains the initial proof path and does not implement trace/outcome comparison, comparison dispositions, or first-divergence reporting. |
+
+### 2.7 Replay Evaluation, Operations, Envelope, and Target Agreement
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| Pending replay evaluation model | **HLR-REPLAY-EVAL-001** / **HLR-REPLAY-EVAL-002** / **HLR-REPLAY-EVAL-003** | HLR-defined / LLR, implementation, and verification pending. Existing checker output remains retained math checker evidence and is not credited with the broader replay-evaluation model. |
+| Pending replay run operations | **HLR-REPLAY-OPS-001** / **HLR-REPLAY-OPS-002** / **HLR-REPLAY-OPS-003** | HLR-defined / LLR, implementation, and verification pending for `record`, `replay`, and `diff` operations. No CLI command or runtime behavior is implemented by this traceability row. |
+| Pending replay-trace envelope operation | **HLR-REPLAY-OPS-004** | HLR-defined / LLR, implementation, and verification pending for applying a named deterministic rule to a replay trace. |
+| Existing raw ADC source-evidence envelope boundary | **HLR-REPLAY-OPS-005** | HLR-defined boundary tying replay requirements to the existing witness-envelope separation. The implemented raw ADC envelope remains traced under **HLR-WITNESS-ENV-001** / **LLR-WITNESS-ENV-001** below and is not a replay-trace envelope. |
+| Pending multi-target replay agreement | **HLR-REPLAY-TGT-001** / **HLR-REPLAY-TGT-002** | HLR-defined / LLR, implementation, and verification pending. No target agreement implementation or verification is claimed. |
 
 ---
 
