@@ -1,12 +1,42 @@
 # Low-Level Requirements - Replay Execution (LLR-REPLAY)
 
-## 1. Frame Model
+## 1. Replay Schema Contract
+
+### LLR-REPLAY-SCHEMA-001: Stable Schema Identity
+Each replay schema shall define a stable schema identity used to associate canonical replay input, retained reference material, execution behavior, traces, and comparison requirements with that schema.
+*Traces to: HLR-REPLAY-SYS-003, HLR-REPLAY-SCHEMA-001*
+
+### LLR-REPLAY-SCHEMA-002: Permitted Input Origins
+Each replay schema shall define the input origins permitted for canonical replay input under that schema, including whether direct saved replay input or projection from admitted source evidence is allowed.
+*Traces to: HLR-REPLAY-SCHEMA-001*
+
+### LLR-REPLAY-SCHEMA-003: Canonical Input Meaning
+Each replay schema shall define the meaning of canonical replay input under that schema without requiring that other replay schemas share the same input representation.
+*Traces to: HLR-REPLAY-SCHEMA-001*
+
+### LLR-REPLAY-SCHEMA-004: State Evolution
+Each replay schema shall define deterministic state evolution for processing canonical replay input in schema-defined order.
+*Traces to: HLR-REPLAY-SCHEMA-002*
+
+### LLR-REPLAY-SCHEMA-005: Trace Meaning and Equality
+Each replay schema shall define the meaning of its trace elements, trace ordering, trace equality, and whether rejected or incomplete executions retain a deterministic trace prefix.
+*Traces to: HLR-REPLAY-SCHEMA-003*
+
+### LLR-REPLAY-SCHEMA-006: Accepted, Rejected, and Incomplete Behavior
+Each replay schema shall define accepted behavior, stable rejection behavior and reasons, incomplete behavior, and the schema-defined terminal outcome associated with execution disposition.
+*Traces to: HLR-REPLAY-SCHEMA-004*
+
+### LLR-REPLAY-SCHEMA-007: Outcome Comparison Rules
+Each replay schema shall define the rules for comparing retained reference trace, reference execution disposition, and reference terminal outcome against generated trace, generated execution disposition, and generated terminal outcome.
+*Traces to: HLR-REPLAY-SCHEMA-005*
+
+## 2. Frame Model
 
 ### LLR-REPLAY-EXEC-001: Replay Frame Variants
 Replay execution shall define replay frame variants for loading operands, executing math operations, and expecting result bits.
 *Traces to: HLR-REPLAY-EXEC-001, HLR-REPLAY-EXEC-002*
 
-## 2. Execution State
+## 3. Execution State
 
 ### LLR-REPLAY-EXEC-002: Replay Execution States
 Replay execution shall define execution states sufficient to distinguish no operands loaded, operands loaded, result produced, accepted, and rejected.
@@ -16,7 +46,7 @@ Replay execution shall define execution states sufficient to distinguish no oper
 Replay execution shall define rejection reasons for invalid execution order, expected-result mismatch, and arithmetic trap rejection.
 *Traces to: HLR-REPLAY-EXEC-003, HLR-REPLAY-EXEC-004, HLR-REPLAY-EXEC-006*
 
-## 3. Execution Semantics
+## 4. Execution Semantics
 
 ### LLR-REPLAY-EXEC-004: Pure In-Memory Execution
 Replay execution shall execute as a pure in-memory operation over a frame slice.
@@ -31,7 +61,7 @@ Replay execution and the public `I64F64` add, sub, mul, and div operators shall 
 *Traces to: HLR-REPLAY-EXEC-002, HLR-REPLAY-EXEC-005, HLR-REPLAY-EXEC-006*
 
 
-## 4. Saved Input Parsing
+## 5. Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Saved replay input parsing shall accept only the initial text grammar: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -54,7 +84,7 @@ Saved replay input parsing shall not execute replay frames; execution remains ow
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 5. Retained Replay Witness Checker
+## 6. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -89,7 +119,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 6. Raw ADC Admitted Observation Projection
+## 7. Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
