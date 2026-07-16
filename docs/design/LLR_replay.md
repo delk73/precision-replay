@@ -53,13 +53,36 @@ When the declared input origin is direct saved replay input, the retained run sh
 *Traces to: HLR-REPLAY-ORIGIN-002, HLR-REPLAY-ORIGIN-004*
 
 
-## 3. Frame Model
+## 3. Retained Run
+
+### LLR-REPLAY-RUN-001: Required Retained Run Content
+Each retained run shall contain a retained-run format version, replay schema identity, canonical replay input, input-origin description, source identity and admission disposition when admission is required, applicable context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
+*Traces to: HLR-REPLAY-RUN-001*
+
+### LLR-REPLAY-RUN-002: Pre-Replay Content Validation
+Required retained-run content shall be validated before replay execution begins.
+*Traces to: HLR-REPLAY-RUN-002*
+
+### LLR-REPLAY-RUN-003: Retained Content Immutability
+Retained-run content shall not change after retained-run creation.
+*Traces to: HLR-REPLAY-RUN-001*
+
+### LLR-REPLAY-RUN-004: Retained Run Identity Derivation
+Retained-run identity shall be derived deterministically from immutable retained-run content and shall not depend on file paths or check times.
+*Traces to: HLR-REPLAY-RUN-003*
+
+### LLR-REPLAY-RUN-005: Retained Run Identity Exclusions
+Generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results shall not change retained-run identity.
+*Traces to: HLR-REPLAY-RUN-004*
+
+
+## 4. Frame Model
 
 ### LLR-REPLAY-EXEC-001: Replay Frame Variants
 Replay execution shall define replay frame variants for loading operands, executing math operations, and expecting result bits.
 *Traces to: HLR-REPLAY-EXEC-001, HLR-REPLAY-EXEC-002*
 
-## 4. Execution State
+## 5. Execution State
 
 ### LLR-REPLAY-EXEC-002: Replay Execution States
 Replay execution shall define execution states sufficient to distinguish no operands loaded, operands loaded, result produced, accepted, and rejected.
@@ -69,7 +92,7 @@ Replay execution shall define execution states sufficient to distinguish no oper
 Replay execution shall define rejection reasons for invalid execution order, expected-result mismatch, and arithmetic trap rejection.
 *Traces to: HLR-REPLAY-EXEC-003, HLR-REPLAY-EXEC-004, HLR-REPLAY-EXEC-006*
 
-## 5. Execution Semantics
+## 6. Execution Semantics
 
 ### LLR-REPLAY-EXEC-004: Pure In-Memory Execution
 Replay execution shall execute as a pure in-memory operation over a frame slice.
@@ -84,7 +107,7 @@ Replay execution and the public `I64F64` add, sub, mul, and div operators shall 
 *Traces to: HLR-REPLAY-EXEC-002, HLR-REPLAY-EXEC-005, HLR-REPLAY-EXEC-006*
 
 
-## 6. Saved Input Parsing
+## 7. Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Saved replay input parsing shall accept only the initial text grammar: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -107,7 +130,7 @@ Saved replay input parsing shall not execute replay frames; execution remains ow
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 7. Retained Replay Witness Checker
+## 8. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -142,7 +165,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 8. Raw ADC Admitted Observation Projection
+## 9. Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.

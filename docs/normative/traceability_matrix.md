@@ -87,8 +87,11 @@ Status-token normalization may be applied incrementally by section; rows without
 
 | Code Component / Implementation Block | Requirement ID | Traceability Verification |
 | :--- | :--- | :--- |
-| Pending retained-run model | **HLR-REPLAY-RUN-001** / **HLR-REPLAY-RUN-002** | Status: pending. HLR-defined / LLR, implementation, and verification pending. Required immutable retained-run content and pre-execution validation are not implemented by the current expected witness/result files. |
-| Pending retained-run identity model | **HLR-REPLAY-RUN-003** / **HLR-REPLAY-RUN-004** | Status: pending. HLR-defined / LLR, implementation, and verification pending. Retained-run identity derivation and exclusion of generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results remain undefined below HLR level. |
+| Retained-run required content requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-001** / **LLR-REPLAY-RUN-001** | Status: traced. HLR and LLR are defined for the common retained-run content inventory. Implementation and verification remain pending. |
+| Retained-run immutability requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-001** / **LLR-REPLAY-RUN-003** | Status: traced. HLR and LLR are defined for retained-run content immutability after creation. Implementation and verification remain pending. |
+| Retained-run pre-execution validation requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-002** / **LLR-REPLAY-RUN-002** | Status: traced. HLR and LLR are defined for validating required retained-run content before replay execution. Implementation and verification remain pending. |
+| Retained-run identity derivation requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-003** / **LLR-REPLAY-RUN-004** | Status: traced. HLR and LLR are defined for deriving retained-run identity deterministically from immutable retained-run content without depending on file paths or check times. Implementation and verification remain pending. |
+| Retained-run identity exclusion requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-004** / **LLR-REPLAY-RUN-005** | Status: traced. HLR and LLR are defined for excluding generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results from retained-run identity. Implementation and verification remain pending. |
 
 ### 2.3 Saved Input Parsing and Initial Math Execution
 
