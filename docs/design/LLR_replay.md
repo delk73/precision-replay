@@ -52,7 +52,7 @@ Upstream canonical input origin routes shall be stable defined types; the curren
 When upstream canonicalization information records the route that produced canonical input, it shall declare exactly one stable route type.
 *Traces to: HLR-REPLAY-ORIGIN-006*
 
-### LLR-REPLAY-ORIGIN-003: Schema-Permitted Route Gate
+### LLR-REPLAY-ORIGIN-003: Upstream Canonicalization Route Gate
 The applicable upstream canonicalization contract for the declared replay schema shall permit the route that produced canonical input.
 *Traces to: HLR-REPLAY-ORIGIN-001, HLR-REPLAY-ORIGIN-006*
 
@@ -100,7 +100,7 @@ Information retained as descriptive context, timing claims, or evidence limitati
 *Traces to: HLR-REPLAY-RUN-005, HLR-REPLAY-SCHEMA-008*
 
 ### LLR-REPLAY-RUN-008: Descriptive Information Non-Comparison
-Information retained as descriptive context, timing claims, or evidence limitations shall not affect trace equality or comparison. Information intended to participate in equality or comparison shall instead be explicitly classified as schema-defined observable data.
+Non-authoritative descriptive information shall not affect functional trace equality or functional comparison. Only schema-defined functional trace or terminal-outcome behavior may participate in functional comparison. Timing observations and timing claims shall remain separately owned by timing evidence and timing evaluation. Evidence limitations shall remain claim-bounding information. Timing information and evidence limitations shall not become functional behavior through comparison.
 *Traces to: HLR-REPLAY-RUN-005, HLR-REPLAY-SCHEMA-008*
 
 

@@ -4,7 +4,7 @@ This document records the current traceability links and verification status bet
 
 ## Traceability Row-Class Policy
 
-The traceability matrix intentionally uses more than one table shape so software implementation mappings and evidence-boundary claims remain structurally distinct before any later section reorganization.
+The traceability matrix intentionally uses more than one table shape so software implementation mappings and evidence-boundary claims remain structurally distinct.
 
 ### Implementation Traceability Rows
 
@@ -95,7 +95,7 @@ Status-token normalization may be applied incrementally by section; rows without
 | Retained-run pre-execution validation requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-002** / **LLR-REPLAY-RUN-002** | Status: traced. HLR and LLR are defined for validating required retained-run content before replay execution. Implementation and verification remain pending. |
 | Retained-run identity derivation requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-003** / **LLR-REPLAY-RUN-004** | Status: traced. HLR and LLR are defined for deriving retained-run identity deterministically from immutable retained-run content without depending on file paths or check times. Implementation and verification remain pending. |
 | Retained-run identity exclusion requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-004** / **LLR-REPLAY-RUN-005** | Status: traced. HLR and LLR are defined for excluding generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results from retained-run identity. Implementation and verification remain pending. |
-| Retained-run descriptive information boundary requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-005** / **LLR-REPLAY-RUN-007** / **LLR-REPLAY-RUN-008** | Status: traced. HLR and LLR are defined for preventing information retained as descriptive context, timing claims, and evidence limitations from affecting execution, trace equality, or comparison. Implementation and verification remain pending. |
+| Retained-run descriptive information boundary requirements in `docs/normative/HLR_replay.md` and `docs/design/LLR_replay.md` | **HLR-REPLAY-RUN-005** / **LLR-REPLAY-RUN-007** / **LLR-REPLAY-RUN-008** | Status: traced. HLR and LLR are defined for allowing modeled-execution input and configuration to affect execution, allowing schema-defined functional trace behavior to participate in functional trace equality, allowing schema-defined functional trace and terminal-outcome behavior to participate in functional comparison, and preventing non-authoritative descriptive information from affecting execution or functional comparison. Timing observations and timing claims remain separately owned by timing evidence and timing evaluation. Evidence limitations bound claims rather than becoming functional behavior. Implementation and verification remain pending. |
 
 ### 2.3 Upstream Saved Input Parsing and Initial Math Execution
 
@@ -143,7 +143,7 @@ Status-token normalization may be applied incrementally by section; rows without
 | Code Component / Implementation Block | Requirement ID | Traceability Verification |
 | :--- | :--- | :--- |
 | Pending replay evaluation model | **HLR-REPLAY-EVAL-001** / **HLR-REPLAY-EVAL-002** / **HLR-REPLAY-EVAL-003** / **HLR-REPLAY-SCHEMA-006** | Status: pending. HLR-defined / LLR, implementation, and verification pending. Evaluation uses the retained run's stable replay schema identity. Existing checker output remains retained math checker evidence and is not credited with the broader replay-evaluation model. |
-| Pending replay run operations | **HLR-REPLAY-OPS-001** / **HLR-REPLAY-OPS-002** / **HLR-REPLAY-OPS-003** | Status: pending. HLR-defined / LLR, implementation, and verification pending for `record`, `replay`, and `diff` operations. No CLI command or runtime behavior is implemented by this traceability row. |
+| Pending replay run operations | **HLR-REPLAY-OPS-001** / **HLR-REPLAY-OPS-002** / **HLR-REPLAY-OPS-003** | Status: pending. HLR-defined / LLR, implementation, and verification pending for `record`, `replay`, and `diff` operations. The `record` operation uses canonical input produced through a route permitted by the applicable upstream canonicalization contract for the declared replay schema. No CLI command or runtime behavior is implemented by this traceability row. |
 | Pending replay-trace envelope operation | **HLR-REPLAY-OPS-004** | Status: pending. HLR-defined / LLR, implementation, and verification pending for applying a named deterministic rule to a replay trace. |
 | Existing raw ADC source-evidence envelope boundary | **HLR-REPLAY-OPS-005** | Status: boundary_only. HLR-defined boundary tying replay requirements to the existing witness-envelope separation. The implemented raw ADC envelope remains traced under **HLR-WITNESS-ENV-001** / **LLR-WITNESS-ENV-001** below and is not a replay-trace envelope. |
 | Pending multi-target replay agreement | **HLR-REPLAY-TGT-001** / **HLR-REPLAY-TGT-002** | Status: pending. HLR-defined / LLR, implementation, and verification pending. No target agreement implementation or verification is claimed. |
@@ -197,7 +197,7 @@ Verification status sources include:
 
 STM32 target witness rows provide behavioral traceability for retained replay observation runtime code and do not expand release evidence, hardware qualification, tool qualification, certification, proof, or CI claims.
 
-Sensor Witness rows distinguish the initial STM32F446 raw ADC witness implementation from deferred validation and later witness surfaces. The raw ADC lane is traced to implementation with build/static validation only. Retained hardware capture artifacts, host parser validation, and retained raw ADC envelope judgment are traced above. Context comparison, calibrated units, replay alignment, digest sealing, and stronger timing claims remain outside the current boundary.
+Sensor Witness rows distinguish the initial STM32F446 raw ADC witness implementation from validation and witness surfaces outside the current boundary. The raw ADC lane is traced to implementation with build/static validation only. Retained hardware capture artifacts, host parser validation, and retained raw ADC envelope judgment are traced above. Context comparison, calibrated units, replay alignment, digest sealing, and stronger timing claims remain outside the current boundary.
 
 ### Addition and Subtraction
 

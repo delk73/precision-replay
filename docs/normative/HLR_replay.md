@@ -38,7 +38,7 @@ Each replay schema shall distinguish modeled-execution input and configuration, 
 
 ## 2. Upstream Canonical Input Origins
 
-### HLR-REPLAY-ORIGIN-001: Schema-Declared Input Origins
+### HLR-REPLAY-ORIGIN-001: Upstream Canonicalization Route Permission
 Upstream canonicalization support shall use only input-origin routes permitted by the applicable upstream canonicalization contract for the declared replay schema.
 
 ### HLR-REPLAY-ORIGIN-002: Direct Saved Replay Input Origin
@@ -72,7 +72,7 @@ Retained-run identity shall be derived deterministically from the immutable reta
 Generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results shall not change retained-run identity.
 
 ### HLR-REPLAY-RUN-005: Descriptive Retained Information Boundary
-Information retained as descriptive context, timing claims, or evidence limitations shall not affect replay execution, trace equality, or comparison. Information required by execution shall instead be classified and bound as schema-declared execution input or configuration, and information intended to participate in equality or comparison shall instead be classified as schema-defined observable data.
+Modeled-execution input and configuration may affect replay execution. Schema-defined observable functional behavior may participate in functional trace equality and functional comparison. Non-authoritative descriptive information shall not affect replay execution, functional trace equality, or functional comparison. Physical timing observations and timing claims shall remain separately owned by timing evidence and timing evaluation. Evidence limitations shall bound the resulting claim and shall not become functional behavior.
 
 
 ## 4. Upstream Parsing and Projection
@@ -244,7 +244,7 @@ The checked-in replay checker entrypoint shall report invalid invocation, input 
 ## 9. Run Operations
 
 ### HLR-REPLAY-OPS-001: Record Operation
-The `record` operation shall create a retained run from direct canonical input or admitted and projected source evidence, as permitted by the replay schema.
+The `record` operation shall create a retained run from canonical input produced through a route permitted by the applicable upstream canonicalization contract for the declared replay schema.
 
 ### HLR-REPLAY-OPS-002: Replay Operation
 The `replay` operation shall validate a retained run, execute it, compare generated behavior with its reference, and produce a replay evaluation.
@@ -256,7 +256,7 @@ The `diff` operation shall compare two retained runs without treating either ret
 The `envelope` operation shall apply a named deterministic rule to a trace and produce a judgment associated with the retained-run identity, trace origin, context, and rule.
 
 ### HLR-REPLAY-OPS-005: Raw ADC Source-Evidence Envelope Boundary
-The existing raw ADC witness envelope shall remain a source-evidence judgment over admitted observations and shall not be redefined as a replay-trace envelope without an explicit future requirement.
+The existing raw ADC witness envelope shall remain a source-evidence judgment over admitted observations and shall not be redefined as a replay-trace envelope without an explicit requirement.
 
 
 ## 10. Target Agreement
