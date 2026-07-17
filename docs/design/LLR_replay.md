@@ -3,12 +3,12 @@
 ## 1. Replay Schema Contract
 
 ### LLR-REPLAY-SCHEMA-001: Stable Schema Identity
-Each replay schema shall define a stable schema identity used to associate canonical replay input, retained runs, replay execution, retained reference material, traces, comparison, and evaluation with that schema.
+Each replay schema identity and version shall permanently resolve to one immutable schema contract used to associate canonical replay input, retained runs, replay execution, retained reference material, traces, comparison, and evaluation with that schema. A new schema identity or version shall be required when canonical-input meaning, required modeled-execution dependencies, state evolution, modeled-time semantics, trace meaning, trace contents, trace ordering, trace equality, terminal behavior, functional comparison semantics, or applicable separately declared timing-evaluation semantics change. Implementation changes shall not require a new schema identity or version unless they change declared schema semantics.
 *Traces to: HLR-REPLAY-SCHEMA-006*
 
-### LLR-REPLAY-SCHEMA-002: Permitted Input Origins
-Each replay schema shall define the input origins permitted for canonical replay input under that schema, including whether direct saved replay input or projection from admitted source evidence is allowed.
-*Traces to: HLR-REPLAY-SCHEMA-001*
+### LLR-REPLAY-SCHEMA-002: Schema-Specific Canonicalization Boundary
+Route permission shall belong to the applicable upstream canonicalization contract for the declared replay schema, not to the common Replay schema contract.
+*Traces to: HLR-REPLAY-SCHEMA-001, HLR-REPLAY-ORIGIN-001*
 
 ### LLR-REPLAY-SCHEMA-003: Canonical Input Meaning
 Each replay schema shall define the meaning of canonical replay input under that schema without requiring that other replay schemas share the same input representation.
@@ -27,52 +27,52 @@ Each replay schema shall define accepted behavior, stable rejection behavior and
 *Traces to: HLR-REPLAY-SCHEMA-004*
 
 ### LLR-REPLAY-SCHEMA-007: Outcome Comparison Rules
-Each replay schema shall define the rules for comparing retained reference trace, reference execution disposition, and reference terminal outcome against generated trace, generated execution disposition, and generated terminal outcome.
+Each replay schema shall define the rules for comparing retained functional reference trace, reference execution disposition, and reference terminal outcome against generated functional trace, generated execution disposition, and generated terminal outcome.
 *Traces to: HLR-REPLAY-SCHEMA-005*
 
 ### LLR-REPLAY-SCHEMA-008: Execution Dependency Declaration
-Each replay schema shall declare which execution dependencies it uses, including any canonical replay input, initial state, module selection and module versions, execution or simulation configuration, numeric policy, transition ordering, active constraints, or other schema-declared execution dependencies.
+Each replay schema shall declare every dependency that may affect modeled execution, including canonical replay input, initial state, module selection and module versions, execution or simulation configuration, numeric policy, transition ordering, active constraints, modeled time when applicable, or other schema-declared execution dependencies.
 *Traces to: HLR-REPLAY-SCHEMA-007*
 
 ### LLR-REPLAY-SCHEMA-009: Descriptive Context Classification
-Each replay schema shall classify context that can affect execution as execution input or configuration and shall classify non-execution context as descriptive.
+Each replay schema shall classify modeled-execution input and configuration separately from non-authoritative descriptive information.
 *Traces to: HLR-REPLAY-SCHEMA-008*
 
 ### LLR-REPLAY-SCHEMA-010: Descriptive Observability Declaration
-Information associated with context, timing claims, or evidence limitations that is intended to participate in trace equality or comparison shall be classified as schema-defined observable data instead of descriptive information.
+Information that participates in the schema-defined functional trace or terminal outcome shall be classified as schema-defined observable functional behavior instead of non-authoritative descriptive information. Timing observations, timing claims, and evidence limitations shall remain separately owned and shall not become functional behavior through trace equality or functional comparison.
 *Traces to: HLR-REPLAY-SCHEMA-008, HLR-REPLAY-RUN-005*
 
-## 2. Replay Input Origins
+## 2. Upstream Canonical Input Origins
 
 ### LLR-REPLAY-ORIGIN-001: Stable Origin Types
-Canonical replay input origins shall be stable defined types; the currently supported origin types are direct saved replay input and input projected from admitted source evidence.
+Upstream canonical input origin routes shall be stable defined types; the currently supported route types are direct saved replay input and input projected from admitted source evidence.
 *Traces to: HLR-REPLAY-ORIGIN-002, HLR-REPLAY-ORIGIN-003, HLR-REPLAY-ORIGIN-005*
 
-### LLR-REPLAY-ORIGIN-002: Retained Run Origin Declaration
-Each retained run shall declare exactly one canonical replay input origin.
-*Traces to: HLR-REPLAY-RUN-001, HLR-REPLAY-ORIGIN-006*
+### LLR-REPLAY-ORIGIN-002: Canonicalization Route Declaration
+When upstream canonicalization information records the route that produced canonical input, it shall declare exactly one stable route type.
+*Traces to: HLR-REPLAY-ORIGIN-006*
 
-### LLR-REPLAY-ORIGIN-003: Schema-Permitted Origin Gate
-The retained run's declared replay schema shall permit the retained run's declared canonical replay input origin.
+### LLR-REPLAY-ORIGIN-003: Schema-Permitted Route Gate
+The applicable upstream canonicalization contract for the declared replay schema shall permit the route that produced canonical input.
 *Traces to: HLR-REPLAY-ORIGIN-001, HLR-REPLAY-ORIGIN-006*
 
 ### LLR-REPLAY-ORIGIN-004: Projected Evidence Admission Requirement
-When the declared input origin is input projected from admitted source evidence, the retained run shall include source identity and source admission information.
+When the upstream route is input projected from admitted source evidence, upstream canonicalization information shall include source identity and source admission information.
 *Traces to: HLR-REPLAY-ORIGIN-003, HLR-REPLAY-ORIGIN-004*
 
 ### LLR-REPLAY-ORIGIN-005: Direct Saved Input Admission Exclusion
-When the declared input origin is direct saved replay input, the retained run shall not invent source identity or source admission information for that origin.
+When the upstream route is direct saved replay input, upstream canonicalization support shall not invent source identity or source admission information for that route.
 *Traces to: HLR-REPLAY-ORIGIN-002, HLR-REPLAY-ORIGIN-004*
 
 ### LLR-REPLAY-ORIGIN-006: Extensible Origin Type Set
-Additional stable origin types may be defined without changing the common retained-run model.
+Additional stable route types may be defined without changing the common retained-run model.
 *Traces to: HLR-REPLAY-ORIGIN-005*
 
 
 ## 3. Retained Run
 
 ### LLR-REPLAY-RUN-001: Required Retained Run Content
-Each retained run shall contain a retained-run format version, replay schema identity, canonical replay input, input-origin declaration, source identity and admission disposition when admission is required by the origin, schema-declared execution dependencies used by execution, descriptive context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
+Each retained run shall contain a retained-run format version, replay schema identity, canonical replay input, schema-declared execution dependencies used by execution, any schema-required upstream canonicalization information retained for that run, descriptive context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
 *Traces to: HLR-REPLAY-RUN-001*
 
 ### LLR-REPLAY-RUN-002: Pre-Replay Content Validation
@@ -143,26 +143,26 @@ Replay execution shall not read clocks, files, environment variables, target met
 *Traces to: HLR-REPLAY-EXEC-013*
 
 
-## 7. Saved Input Parsing
+## 7. Upstream Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
-Saved replay input parsing shall accept only the initial text grammar: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
+Upstream saved-input parsing shall accept only the initial text grammar before producing canonical input: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
 *Traces to: HLR-REPLAY-PARSE-001, HLR-REPLAY-PARSE-002, HLR-REPLAY-PARSE-006*
 
 ### LLR-REPLAY-PARSE-002: Saved Input Frame Rows
-Saved replay input parsing shall define frame rows `load lhs=<i128> rhs=<i128>`, `add`, `sub`, `mul`, `div`, and `expect bits=<i128>`.
+Upstream saved-input parsing shall define frame rows `load lhs=<i128> rhs=<i128>`, `add`, `sub`, `mul`, `div`, and `expect bits=<i128>`.
 *Traces to: HLR-REPLAY-PARSE-005, HLR-REPLAY-PARSE-006*
 
 ### LLR-REPLAY-PARSE-003: Parse Rejection Reasons
-Saved replay input parsing shall define rejection reasons for missing version, unknown version, missing schema, unknown schema, unknown frame opcode, malformed frame rows, missing required fields, invalid integer fields, and caller-provided frame capacity exhaustion.
+Upstream saved-input parsing shall define rejection reasons for missing version, unknown version, missing schema, unknown schema, unknown frame opcode, malformed frame rows, missing required fields, invalid integer fields, and caller-provided frame capacity exhaustion.
 *Traces to: HLR-REPLAY-PARSE-003, HLR-REPLAY-PARSE-004, HLR-REPLAY-PARSE-005*
 
 ### LLR-REPLAY-PARSE-004: Pure In-Memory Parsing
-Saved replay input parsing shall be a pure in-memory operation over `&str` input and shall write parsed frames into a caller-provided output buffer.
+Upstream saved-input parsing shall be a pure in-memory operation over `&str` input and shall write parsed frames into a caller-provided output buffer.
 *Traces to: HLR-REPLAY-PARSE-006*
 
 ### LLR-REPLAY-PARSE-005: Parse/Execute Separation
-Saved replay input parsing shall not execute replay frames; execution remains owned by `execute_replay(&[ReplayFrame])`.
+Upstream saved-input parsing shall not execute replay frames; execution remains owned by `execute_replay(&[ReplayFrame])` after canonical input exists.
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
@@ -201,28 +201,28 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 9. Raw ADC Admitted Observation Projection
+## 9. Upstream Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
-Raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
+Upstream raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
 *Traces to: HLR-REPLAY-PROJ-001*
 
 ### LLR-REPLAY-PROJ-002: Raw ADC Admitted Row Selection
-Raw-ADC-derived replay input projection shall include only admitted observations and shall exclude rejected or malformed rows.
+Upstream raw-ADC-derived replay input projection shall include only admitted observations and shall exclude rejected or malformed rows.
 *Traces to: HLR-REPLAY-PROJ-002*
 
 ### LLR-REPLAY-PROJ-003: Raw ADC Source Reference Preservation
-Raw-ADC-derived replay input projection shall preserve a reference to the admitted source capture without defining how that reference is represented.
+Upstream raw-ADC-derived replay input projection shall preserve a reference to the admitted source capture without defining how that reference is represented.
 *Traces to: HLR-REPLAY-PROJ-003*
 
 ### LLR-REPLAY-PROJ-004: Raw ADC Observation Summary Preservation
-Raw-ADC-derived replay input projection shall preserve the admitted values of `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and `timing_claim`.
+Upstream raw-ADC-derived replay input projection shall preserve the admitted values of `sample_count`, `first_sample_index`, `last_sample_index`, `min_raw_adc`, `max_raw_adc`, and `timing_claim`.
 *Traces to: HLR-REPLAY-PROJ-004*
 
 ### LLR-REPLAY-PROJ-005: Raw ADC Context Preservation
-Raw-ADC-derived replay input projection shall preserve `context_id` when present and omit it when absent.
+Upstream raw-ADC-derived replay input projection shall preserve `context_id` when present and omit it when absent.
 *Traces to: HLR-REPLAY-PROJ-005*
 
 ### LLR-REPLAY-PROJ-006: Raw ADC Stable Projection
-The same admitted raw ADC observations and metadata shall produce the same raw-ADC-derived replay input.
+The same admitted raw ADC observations and metadata shall produce the same upstream raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
