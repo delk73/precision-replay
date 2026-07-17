@@ -3,8 +3,8 @@
 ## 1. Replay Schema Contract
 
 ### LLR-REPLAY-SCHEMA-001: Stable Schema Identity
-Each replay schema shall define a stable schema identity used to associate canonical replay input, retained reference material, execution behavior, traces, and comparison requirements with that schema.
-*Traces to: HLR-REPLAY-SYS-003, HLR-REPLAY-SCHEMA-001*
+Each replay schema shall define a stable schema identity used to associate canonical replay input, retained runs, replay execution, retained reference material, traces, comparison, and evaluation with that schema.
+*Traces to: HLR-REPLAY-SCHEMA-006*
 
 ### LLR-REPLAY-SCHEMA-002: Permitted Input Origins
 Each replay schema shall define the input origins permitted for canonical replay input under that schema, including whether direct saved replay input or projection from admitted source evidence is allowed.
@@ -30,19 +30,31 @@ Each replay schema shall define accepted behavior, stable rejection behavior and
 Each replay schema shall define the rules for comparing retained reference trace, reference execution disposition, and reference terminal outcome against generated trace, generated execution disposition, and generated terminal outcome.
 *Traces to: HLR-REPLAY-SCHEMA-005*
 
+### LLR-REPLAY-SCHEMA-008: Execution Dependency Declaration
+Each replay schema shall declare which execution dependencies it uses, including any canonical replay input, initial state, module selection and module versions, execution or simulation configuration, numeric policy, transition ordering, active constraints, or other schema-declared execution dependencies.
+*Traces to: HLR-REPLAY-SCHEMA-007*
+
+### LLR-REPLAY-SCHEMA-009: Descriptive Context Classification
+Each replay schema shall classify context that can affect execution as execution input or configuration and shall classify non-execution context as descriptive.
+*Traces to: HLR-REPLAY-SCHEMA-008*
+
+### LLR-REPLAY-SCHEMA-010: Descriptive Observability Declaration
+Information associated with context, timing claims, or evidence limitations that is intended to participate in trace equality or comparison shall be classified as schema-defined observable data instead of descriptive information.
+*Traces to: HLR-REPLAY-SCHEMA-008, HLR-REPLAY-RUN-005*
+
 ## 2. Replay Input Origins
 
-### LLR-REPLAY-ORIGIN-001: Defined Input Origins
-The permitted canonical replay input origins shall be direct saved replay input and input projected from admitted source evidence.
-*Traces to: HLR-REPLAY-ORIGIN-001, HLR-REPLAY-ORIGIN-002, HLR-REPLAY-ORIGIN-003*
+### LLR-REPLAY-ORIGIN-001: Stable Origin Types
+Canonical replay input origins shall be stable defined types; the currently supported origin types are direct saved replay input and input projected from admitted source evidence.
+*Traces to: HLR-REPLAY-ORIGIN-002, HLR-REPLAY-ORIGIN-003, HLR-REPLAY-ORIGIN-005*
 
 ### LLR-REPLAY-ORIGIN-002: Retained Run Origin Declaration
 Each retained run shall declare exactly one canonical replay input origin.
-*Traces to: HLR-REPLAY-RUN-001, HLR-REPLAY-ORIGIN-001*
+*Traces to: HLR-REPLAY-RUN-001, HLR-REPLAY-ORIGIN-006*
 
 ### LLR-REPLAY-ORIGIN-003: Schema-Permitted Origin Gate
 The retained run's declared replay schema shall permit the retained run's declared canonical replay input origin.
-*Traces to: HLR-REPLAY-ORIGIN-001*
+*Traces to: HLR-REPLAY-ORIGIN-001, HLR-REPLAY-ORIGIN-006*
 
 ### LLR-REPLAY-ORIGIN-004: Projected Evidence Admission Requirement
 When the declared input origin is input projected from admitted source evidence, the retained run shall include source identity and source admission information.
@@ -52,11 +64,15 @@ When the declared input origin is input projected from admitted source evidence,
 When the declared input origin is direct saved replay input, the retained run shall not invent source identity or source admission information for that origin.
 *Traces to: HLR-REPLAY-ORIGIN-002, HLR-REPLAY-ORIGIN-004*
 
+### LLR-REPLAY-ORIGIN-006: Extensible Origin Type Set
+Additional stable origin types may be defined without changing the common retained-run model.
+*Traces to: HLR-REPLAY-ORIGIN-005*
+
 
 ## 3. Retained Run
 
 ### LLR-REPLAY-RUN-001: Required Retained Run Content
-Each retained run shall contain a retained-run format version, replay schema identity, canonical replay input, input-origin description, source identity and admission disposition when admission is required, applicable context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
+Each retained run shall contain a retained-run format version, replay schema identity, canonical replay input, input-origin declaration, source identity and admission disposition when admission is required by the origin, schema-declared execution dependencies used by execution, descriptive context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
 *Traces to: HLR-REPLAY-RUN-001*
 
 ### LLR-REPLAY-RUN-002: Pre-Replay Content Validation
@@ -74,6 +90,18 @@ Retained-run identity shall be derived deterministically from immutable retained
 ### LLR-REPLAY-RUN-005: Retained Run Identity Exclusions
 Generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results shall not change retained-run identity.
 *Traces to: HLR-REPLAY-RUN-004*
+
+### LLR-REPLAY-RUN-006: Retained Execution Dependency Binding
+Each retained run shall bind every execution dependency used by its declared replay schema.
+*Traces to: HLR-REPLAY-RUN-001, HLR-REPLAY-SCHEMA-007, HLR-REPLAY-EXEC-014*
+
+### LLR-REPLAY-RUN-007: Descriptive Information Non-Execution
+Information retained as descriptive context, timing claims, or evidence limitations shall not affect replay execution. Information required by execution shall instead be classified and bound as schema-declared execution input or configuration.
+*Traces to: HLR-REPLAY-RUN-005, HLR-REPLAY-SCHEMA-008*
+
+### LLR-REPLAY-RUN-008: Descriptive Information Non-Comparison
+Information retained as descriptive context, timing claims, or evidence limitations shall not affect trace equality or comparison. Information intended to participate in equality or comparison shall instead be explicitly classified as schema-defined observable data.
+*Traces to: HLR-REPLAY-RUN-005, HLR-REPLAY-SCHEMA-008*
 
 
 ## 4. Frame Model
@@ -105,6 +133,14 @@ Running the same frame slice twice shall produce the same execution result.
 ### LLR-REPLAY-EXEC-006: Shared Fallible Arithmetic Trap Handling
 Replay execution and the public `I64F64` add, sub, mul, and div operators shall share the same crate-internal fallible arithmetic paths; replay execution shall map any fallible arithmetic error to the arithmetic-trap rejection reason without producing a new result, while public operators shall map those errors to the existing trap panic messages.
 *Traces to: HLR-REPLAY-EXEC-002, HLR-REPLAY-EXEC-005, HLR-REPLAY-EXEC-006*
+
+### LLR-REPLAY-EXEC-007: Retained Run Execution Input Closure
+Replay execution of a retained run shall use the declared replay schema to interpret only the execution-dependency values bound by that retained run.
+*Traces to: HLR-REPLAY-EXEC-013, HLR-REPLAY-EXEC-014*
+
+### LLR-REPLAY-EXEC-008: External State Exclusion
+Replay execution shall not read clocks, files, environment variables, target metadata, diagnostics, later verification results, or other undeclared external state to determine state evolution.
+*Traces to: HLR-REPLAY-EXEC-013*
 
 
 ## 7. Saved Input Parsing

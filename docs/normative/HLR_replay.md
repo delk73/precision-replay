@@ -9,7 +9,7 @@ The replay system shall include both retained integrated-math replay and raw-ADC
 The replay system shall not define math replay frames or raw ADC observations as universal replay input.
 
 ### HLR-REPLAY-SYS-003: Retained-Run Format Ownership
-The retained-run format shall own the common replay run structure shared across replay schemas.
+The retained-run format shall own the common replay run structure shared across replay schemas without owning schema-specific canonical input meaning, execution behavior, trace semantics, or comparison rules.
 
 ### HLR-REPLAY-SCHEMA-001: Schema-Owned Canonical Input Meaning
 Each replay schema shall define the meaning of its canonical replay input and its permitted input origins.
@@ -26,6 +26,15 @@ Each replay schema shall define terminal acceptance, stable rejection behavior, 
 ### HLR-REPLAY-SCHEMA-005: Schema-Owned Outcome Comparison
 Each replay schema shall define reference and generated outcome comparison requirements.
 
+### HLR-REPLAY-SCHEMA-006: Stable Schema Identity
+Each replay schema shall define a stable schema identity used by retained runs, replay execution, traces, comparison, and evaluation.
+
+### HLR-REPLAY-SCHEMA-007: Schema-Declared Execution Dependencies
+Each replay schema shall declare the execution dependencies that may affect state evolution under that schema, including any canonical replay input, initial state, module selection and module versions, execution or simulation configuration, numeric policy, transition ordering, active constraints, or other schema-declared execution dependencies it uses.
+
+### HLR-REPLAY-SCHEMA-008: Descriptive Context Boundary
+Each replay schema shall distinguish execution input, execution configuration, observable trace or comparison data, and descriptive context. Descriptive context shall not affect replay execution, trace equality, or comparison.
+
 
 ## 2. Canonical Input Origins
 
@@ -41,11 +50,17 @@ The replay system shall support projection from admitted source evidence as a pe
 ### HLR-REPLAY-ORIGIN-004: Origin-Specific Admission Boundary
 Replay schemas shall require source admission only for input origins that depend on admitted source evidence.
 
+### HLR-REPLAY-ORIGIN-005: Stable Origin-Type Contract
+Canonical replay input origins shall be stable defined origin types. Additional origin types may be defined without changing the common retained-run model.
+
+### HLR-REPLAY-ORIGIN-006: Retained Run Single Permitted Origin
+Each retained run shall declare exactly one canonical replay input origin, and that origin shall be permitted by the retained run's declared replay schema.
+
 
 ## 3. Retained Run
 
 ### HLR-REPLAY-RUN-001: Retained Run Immutable Content
-A retained run shall be an immutable replay object containing the retained-run format version, replay schema identity, canonical replay input, input-origin description, source identity and admission disposition when admission is required, applicable context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
+A retained run shall be an immutable replay object containing the retained-run format version, replay schema identity, canonical replay input, input-origin declaration, source identity and admission disposition when admission is required by the origin, schema-declared execution dependencies used by execution, descriptive context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
 
 ### HLR-REPLAY-RUN-002: Retained Run Pre-Execution Validation
 Required retained-run content shall be validated before replay execution begins.
@@ -55,6 +70,9 @@ Retained-run identity shall be derived deterministically from the immutable reta
 
 ### HLR-REPLAY-RUN-004: Generated Evidence Identity Exclusion
 Generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results shall not change retained-run identity.
+
+### HLR-REPLAY-RUN-005: Descriptive Retained Information Boundary
+Information retained as descriptive context, timing claims, or evidence limitations shall not affect replay execution, trace equality, or comparison. Information required by execution shall instead be classified and bound as schema-declared execution input or configuration, and information intended to participate in equality or comparison shall instead be classified as schema-defined observable data.
 
 
 ## 4. Parsing and Projection
@@ -133,6 +151,12 @@ An incomplete replay execution outcome shall mean execution reached neither term
 
 ### HLR-REPLAY-EXEC-012: Retained Run Immutability During Execution
 Replay execution shall leave the retained run unchanged.
+
+### HLR-REPLAY-EXEC-013: No Undeclared External Execution State
+Replay execution shall not depend on undeclared external state.
+
+### HLR-REPLAY-EXEC-014: Bound Execution Dependency Use
+Replay execution of a retained run shall use the declared replay schema semantics and only execution-dependency values bound by the retained run.
 
 
 ## 6. Execution Trace
