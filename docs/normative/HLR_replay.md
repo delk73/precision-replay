@@ -59,20 +59,29 @@ When upstream canonicalization information records the route that produced canon
 
 ## 3. Retained Run
 
-### HLR-REPLAY-RUN-001: Retained Run Immutable Content
-A retained run shall be an immutable replay object containing the retained-run format version, replay schema identity, canonical replay input, schema-declared execution dependencies used by execution, any schema-required upstream canonicalization information retained for that run, descriptive context, timing claims, evidence limitations, reference trace, reference execution disposition and schema-defined terminal outcome, and comparison metadata required by the schema.
+### HLR-REPLAY-RUN-001: Retained Run Functional Content
+A retained run shall be an immutable functional replay object containing retained-run format identity and version, replay schema identity and version, canonical input, every schema-declared modeled-execution dependency, retained functional reference material, and schema-required functional comparison parameters. Retained functional reference material shall include the schema-defined reference material required for functional comparison, including reference functional trace, reference execution disposition, and reference terminal outcome where applicable. Physical timing reference material shall not be retained functional reference material.
 
 ### HLR-REPLAY-RUN-002: Retained Run Pre-Execution Validation
-Required retained-run content shall be validated before replay execution begins.
+Retained-run validation shall be a deterministic pre-execution operation over retained-run content and required immutable provenance associations. Validation shall check, as applicable, supported retained-run format identity and version, resolvable schema identity and version, required canonical input presence and canonical representation, presence of every schema-declared modeled-execution dependency, absence of undeclared execution dependencies in the authoritative execution binding, presence and structural validity of retained functional reference material, presence and structural validity of required functional comparison parameters, internal reference consistency, consistency between the computed retained-run identity and any stored or claimed retained-run identity, and required immutable provenance association presence and resolution when the schema explicitly requires provenance. Retained-run validation shall not validate target compatibility or physical timing limits.
 
 ### HLR-REPLAY-RUN-003: Deterministic Retained Run Identity
-Retained-run identity shall be derived deterministically from the immutable retained-run content.
+Functional retained-run identity shall be derived from one canonical representation of the complete identity-bearing retained-run content. Identity-bearing content shall include retained-run format identity and version, replay schema identity and version, canonical input, modeled-execution dependency bindings, retained functional reference material, and functional comparison parameters. Two retained runs with identical canonical identity input shall have the same retained-run identity. Any change to identity-bearing content shall produce different canonical identity input. When retained-run identity is represented by a digest, the digest contract shall define deterministic collision treatment.
 
-### HLR-REPLAY-RUN-004: Generated Evidence Identity Exclusion
-Generated evaluations, diagnostics, target metadata, envelope judgments, and later verification results shall not change retained-run identity.
+### HLR-REPLAY-RUN-004: Retained Run Identity Exclusions
+Functional retained-run identity shall not depend on file path, load time, validation time, execution time, storage location, upstream route or provenance, descriptive context, timing claims or observations, evidence limitations, target metadata, diagnostics, generated execution evidence, generated evaluations, or post-creation verification results.
 
 ### HLR-REPLAY-RUN-005: Descriptive Retained Information Boundary
-Modeled-execution input and configuration may affect replay execution. Schema-defined observable functional behavior may participate in functional trace equality and functional comparison. Non-authoritative descriptive information shall not affect replay execution, functional trace equality, or functional comparison. Physical timing observations and timing claims shall remain separately owned by timing evidence and timing evaluation. Evidence limitations shall bound the resulting claim and shall not become functional behavior.
+Non-authoritative descriptive context, timing claims, timing observations, evidence limitations, target metadata, diagnostics, and post-creation verification results shall not be required functional retained-run content and shall not participate in functional retained-run identity. Modeled-execution input and configuration may affect replay execution only when classified as schema-declared modeled-execution dependencies. Schema-defined functional trace behavior may participate in functional trace equality. Schema-defined functional trace and terminal-outcome behavior may participate in functional comparison. Physical timing observations and timing claims shall remain separately owned by timing evidence and timing evaluation. Evidence limitations shall bound the resulting claim and shall not become functional behavior.
+
+### HLR-REPLAY-RUN-006: Upstream Provenance Association Boundary
+Upstream route, source identity, admission result, parsing details, and projection details shall not be retained-run content. When a schema or resulting claim requires upstream provenance or admission evidence, a separate immutable provenance association shall link the functional retained-run identity to the separately owned upstream record. The provenance association and referenced upstream content shall not participate in functional retained-run identity. Validation may require and resolve the provenance association before execution when the schema explicitly requires provenance. An unresolved optional provenance association shall not affect replay execution.
+
+### HLR-REPLAY-RUN-007: Retained Run Validation Result
+Retained-run validation shall produce a deterministic validation result with disposition `valid` or `invalid`. An invalid validation result shall include one or more stable machine-readable reasons, or a deterministic ordered reason set. When retained-run identity can be computed, the validation result shall include the computed retained-run identity. Validation time, checker path, storage path, and diagnostic prose shall not alter the validation result.
+
+### HLR-REPLAY-RUN-008: Validation and Execution Separation
+Only a retained run with validation disposition `valid` may enter replay execution. Retained-run validation failure shall occur before execution, shall not be an execution disposition, and shall not be execution rejection. No functional execution trace or terminal execution outcome shall be produced when execution never begins.
 
 
 ## 4. Upstream Parsing and Projection
