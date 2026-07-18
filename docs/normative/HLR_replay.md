@@ -150,34 +150,68 @@ Replay execution of a retained run shall consume canonical replay input under th
 Replay execution of a retained run shall process canonical replay input deterministically and in the order defined by the replay schema.
 
 ### HLR-REPLAY-EXEC-009: Replay Execution Disposition
-Replay execution of a retained run shall produce an execution disposition of `accepted`, `rejected`, or `incomplete`.
+
+Once execution of a valid retained run begins, the execution shall produce exactly one disposition: `accepted`, `rejected`, or `incomplete`.
+
+A retained run that fails validation shall not receive an execution disposition because execution did not begin.
 
 ### HLR-REPLAY-EXEC-010: Stable Rejection Reason
-A rejected replay execution outcome shall carry a stable schema-defined reason.
 
-### HLR-REPLAY-EXEC-011: Incomplete Outcome Meaning
-An incomplete replay execution outcome shall mean execution reached neither terminal acceptance nor a defined rejection.
+A replay execution with disposition `rejected` shall carry a stable schema-defined reason.
+
+### HLR-REPLAY-EXEC-011: Incomplete Disposition Meaning
+
+A replay execution with disposition `incomplete` shall mean execution began but reached neither schema-defined successful terminal completion nor a defined deterministic rejection.
 
 ### HLR-REPLAY-EXEC-012: Retained Run Immutability During Execution
-Replay execution shall leave the retained run unchanged.
+
+Replay execution and generated execution evidence shall leave the retained run, retained functional reference, retained-run identity, and upstream provenance unchanged.
 
 ### HLR-REPLAY-EXEC-013: No Undeclared External Execution State
-Replay execution shall not depend on undeclared external state.
+
+Replay execution shall not depend on undeclared external state for modeled state evolution.
 
 ### HLR-REPLAY-EXEC-014: Bound Execution Dependency Use
 Replay execution of a retained run shall use the declared replay schema semantics and only execution-dependency values bound by the retained run.
+
+### HLR-REPLAY-EXEC-015: Execution Occurrence Identity
+One execution occurrence shall be one attempted execution of one retained run with validation disposition `valid`. Each execution occurrence shall have an occurrence identity that distinguishes it from other attempts of the same retained run without requiring wall-clock time as the identity source. Occurrence identity shall not affect modeled state evolution, retained-run identity, functional trace equality, or functional comparison.
+
+### HLR-REPLAY-EXEC-016: Execution Record Content
+Each execution occurrence shall produce one authoritative immutable execution record after execution begins. The execution record shall contain, as applicable, execution-record format identity and version, execution occurrence identity, retained-run identity, replay schema identity and version, an immutable reference to the retained-run validation result with disposition `valid` that authorized the execution occurrence, generated functional trace, execution disposition, generated terminal outcome, stable machine-readable execution reasons when applicable, incomplete-execution evidence, authoritative execution-context facts, physical timing observations, and immutable references to separately owned diagnostics. A storage copy or re-encoding with identical canonical record content shall not represent a new execution occurrence.
+
+### HLR-REPLAY-EXEC-017: Execution Record Identity
+Execution-record identity shall be derived from one canonical representation of identity-bearing execution-record content. Identity-bearing content shall include execution-record format identity and version, occurrence identity, retained-run identity, schema identity and version, the immutable valid-validation-result reference, generated functional trace, execution disposition, terminal outcome when present, stable machine-readable execution reasons and incomplete-execution evidence when applicable, authoritative execution-context facts, physical timing observations when present, and immutable diagnostic references. Immutable diagnostic references shall identify immutable diagnostic content independently of storage location. Referenced diagnostic content shall not participate directly in execution-record identity. Storage path, load time, check time, UI state, diagnostic paths, URLs, storage keys, mutable locators, other location-dependent values, comparison results, timing evaluation results, generated evaluations, and post-creation verification results shall not participate in execution-record identity. When execution-record identity is represented by a digest, collision handling shall follow the declared digest contract.
+
+### HLR-REPLAY-EXEC-018: Execution Disposition Meanings
+An `accepted` execution disposition shall mean schema-defined successful terminal completion. A `rejected` execution disposition shall mean schema-defined deterministic rejection after execution begins. An `incomplete` execution disposition shall mean execution began but produced no accepted or rejected terminal disposition.
+
+### HLR-REPLAY-EXEC-019: Incomplete Execution Evidence
+Incomplete execution shall retain, when available, the generated trace prefix, stable incomplete reason or deterministic ordered reason set, terminal-outcome presence or absence, and last schema-defined execution state reached.
+
+### HLR-REPLAY-EXEC-020: Execution Context Boundary
+Modeled-execution dependencies bound by the retained run may affect state evolution. Execution-context facts shall describe where and under what conditions execution occurred and shall not affect state evolution unless already declared and bound as modeled-execution dependencies. Execution records shall record applicable implementation identity and version, target identity and configuration, processor or accelerator configuration, peripheral and clock configuration, operating-system, runtime, and scheduler environment, resource limits and allocation, observation or trace configuration, and timing source and measurement points with timing resolution, accuracy, and uncertainty. Execution-context recording shall not evaluate target compatibility.
+
+### HLR-REPLAY-EXEC-021: Physical Timing Observation Evidence
+Physical timing observations shall be generated execution evidence, shall remain separate from modeled time, and shall identify source, measurement points, units, resolution, accuracy, and uncertainty when applicable. Physical timing observations shall not affect functional trace equality, functional comparison, or retained-run identity, and shall not define timing pass or fail.
+
+### HLR-REPLAY-EXEC-022: Diagnostics Reference Boundary
+Diagnostics shall remain separately owned generated artifacts. An execution record may contain immutable diagnostic references. Those references shall identify immutable diagnostic content independently of storage location and shall participate in execution-record identity. Referenced diagnostic content shall not participate directly in execution-record identity. Referenced human-readable diagnostic content shall not alter execution disposition, terminal outcome, or functional trace. Diagnostic paths, URLs, storage keys, mutable locators, and other location-dependent values shall not participate in execution-record identity. Stable machine-readable incomplete or execution reasons shall belong in the execution record.
 
 
 ## 6. Execution Trace
 
 ### HLR-REPLAY-TRACE-001: Ordered Observable Execution Trace
-Replay execution of a retained run shall produce an ordered schema-defined trace that records observable execution.
+Replay execution of a retained run shall produce an ordered schema-defined generated functional trace that records observable execution and belongs to the execution record.
 
-### HLR-REPLAY-TRACE-002: Trace and Disposition Separation
-The execution trace shall record ordered observable execution, while the execution disposition shall record how execution ended.
+### HLR-REPLAY-TRACE-002: Trace, Disposition, and Terminal Outcome Separation
+The generated functional trace shall record ordered observable execution, the execution disposition shall record how execution ended, and the generated terminal outcome shall belong to the execution record when present. The retained functional reference trace and retained reference outcome shall remain retained-run content.
 
 ### HLR-REPLAY-TRACE-003: Deterministic Prefix Trace
-Rejected and incomplete execution may retain a deterministic trace prefix only when the replay schema defines that behavior.
+Rejected and incomplete execution may retain a deterministic generated trace prefix only when the replay schema defines that behavior.
+
+### HLR-REPLAY-TRACE-004: Terminal Outcome Non-Trace Boundary
+Terminal outcome may participate in functional comparison under schema rules, but shall not become functional trace behavior unless the schema explicitly defines it that way.
 
 
 ## 7. Comparison

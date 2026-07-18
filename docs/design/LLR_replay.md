@@ -166,6 +166,58 @@ Replay execution of a retained run shall use the declared replay schema to inter
 Replay execution shall not read clocks, files, environment variables, target metadata, diagnostics, post-creation verification results, or other undeclared external state to determine state evolution.
 *Traces to: HLR-REPLAY-EXEC-013*
 
+### LLR-REPLAY-EXEC-009: Validated Execution Occurrence
+An execution occurrence shall be created only for an attempted execution of one retained run with validation disposition `valid`.
+*Traces to: HLR-REPLAY-RUN-008, HLR-REPLAY-EXEC-015*
+
+### LLR-REPLAY-EXEC-010: Occurrence Identity Boundary
+Occurrence identity shall distinguish separate execution attempts of the same retained run. Its construction shall not alter retained-run identity or affect modeled state evolution, functional trace equality, or functional comparison. Wall-clock time shall not be required as its source.
+*Traces to: HLR-REPLAY-EXEC-015*
+
+### LLR-REPLAY-EXEC-011: One Execution Record Per Occurrence
+Each execution occurrence shall produce exactly one authoritative immutable execution record after execution begins, and a storage copy or re-encoding with identical canonical record content shall not create another execution occurrence.
+*Traces to: HLR-REPLAY-EXEC-016, HLR-REPLAY-EXEC-012*
+
+### LLR-REPLAY-EXEC-012: Execution Record Content
+An execution record shall contain, when applicable, execution-record format identity and version, execution occurrence identity, retained-run identity, replay schema identity and version, an immutable reference to the retained-run validation result with disposition `valid` that authorized the execution occurrence, generated functional trace, execution disposition, generated terminal outcome, stable machine-readable execution reasons when applicable, incomplete-execution evidence, authoritative execution-context facts, physical timing observations, and immutable diagnostic references.
+*Traces to: HLR-REPLAY-EXEC-016*
+
+### LLR-REPLAY-EXEC-013: Execution Record Canonical Identity
+Execution-record identity shall be calculated from one canonical representation of identity-bearing execution-record content. Map iteration, field order outside that canonical representation, platform encoding, file layout, storage path, load time, and check time shall not alter the canonical execution-record identity input. When execution-record identity is represented by a digest, collision handling shall follow the declared digest contract.
+*Traces to: HLR-REPLAY-EXEC-017*
+
+### LLR-REPLAY-EXEC-014: Execution Record Identity Field Classification
+Identity-bearing execution-record content shall consist of execution-record format identity and version, occurrence identity, retained-run identity, schema identity and version, the immutable valid-validation-result reference, generated trace, execution disposition, terminal outcome when present, stable machine-readable execution reasons and incomplete-execution evidence when applicable, authoritative execution-context facts, physical timing observations when present, and immutable diagnostic references. Immutable diagnostic references shall identify immutable diagnostic content independently of storage location. Referenced diagnostic content shall not participate directly in execution-record identity. Storage path, load time, check time, UI state, diagnostic paths, URLs, storage keys, mutable locators, other location-dependent values, comparison results, timing evaluation results, generated evaluations, and post-creation verification results shall be excluded from execution-record identity.
+*Traces to: HLR-REPLAY-EXEC-017, HLR-REPLAY-EXEC-022*
+
+### LLR-REPLAY-EXEC-015: Execution Disposition Meanings
+Execution disposition `accepted` shall mean schema-defined successful terminal completion, `rejected` shall mean schema-defined deterministic rejection after execution begins, and `incomplete` shall mean execution began but produced no accepted or rejected terminal disposition. Validation failure shall not be represented by any execution disposition.
+*Traces to: HLR-REPLAY-EXEC-009, HLR-REPLAY-EXEC-011, HLR-REPLAY-EXEC-018, HLR-REPLAY-RUN-008*
+
+### LLR-REPLAY-EXEC-016: Incomplete Execution Evidence
+An incomplete execution record shall retain, when available, generated trace prefix, stable incomplete reason or deterministic ordered reason set, terminal-outcome presence or absence, and last schema-defined execution state reached.
+*Traces to: HLR-REPLAY-EXEC-019, HLR-REPLAY-TRACE-003*
+
+### LLR-REPLAY-EXEC-017: Generated Trace and Terminal Outcome Ownership
+The generated functional trace and generated terminal outcome shall belong to the execution record. The retained functional reference trace and retained reference outcome shall remain retained-run content. Terminal outcome may participate in functional comparison under schema rules but shall not be treated as functional trace behavior unless the schema explicitly defines it that way.
+*Traces to: HLR-REPLAY-TRACE-001, HLR-REPLAY-TRACE-002, HLR-REPLAY-TRACE-004*
+
+### LLR-REPLAY-EXEC-018: Execution Context Classification
+Execution-context facts shall describe where and under what conditions execution occurred and shall not affect state evolution unless declared and bound as modeled-execution dependencies. Execution-context facts shall include applicable implementation identity and version, target identity and configuration, processor or accelerator configuration, peripheral and clock configuration, operating-system, runtime, and scheduler environment, resource limits and allocation, observation or trace configuration, and timing source and measurement points with timing resolution, accuracy, and uncertainty.
+*Traces to: HLR-REPLAY-EXEC-013, HLR-REPLAY-EXEC-014, HLR-REPLAY-EXEC-020*
+
+### LLR-REPLAY-EXEC-019: Physical Timing Observation Content
+Physical timing observations shall be generated execution evidence separate from modeled time and shall record source, measurement points, units, resolution, accuracy, and uncertainty when applicable. Physical timing observations shall not affect functional trace equality, functional comparison, or retained-run identity. Physical timing observations shall not themselves define timing pass or fail; a separate timing evaluation may use them as evidence.
+*Traces to: HLR-REPLAY-EXEC-021, HLR-REPLAY-SCHEMA-006, HLR-REPLAY-RUN-004*
+
+### LLR-REPLAY-EXEC-020: Diagnostic Reference Boundary
+Diagnostics shall remain separately owned generated artifacts. An execution record may contain immutable diagnostic references. Those references shall identify immutable diagnostic content independently of storage location and shall participate in execution-record identity. Referenced diagnostic content shall not participate directly in execution-record identity. Referenced human-readable diagnostic content shall not alter execution disposition, terminal outcome, or functional trace. Diagnostic paths, URLs, storage keys, mutable locators, and other location-dependent values shall not participate in execution-record identity. Stable machine-readable incomplete or execution reasons shall be retained in the execution record.
+*Traces to: HLR-REPLAY-EXEC-022, HLR-REPLAY-EXEC-010, HLR-REPLAY-EXEC-019*
+
+### LLR-REPLAY-EXEC-021: Retained Run Immutability During Execution
+Execution occurrences, execution records, generated traces, physical timing observations, and diagnostic references shall not mutate the retained run, retained functional reference, retained-run identity, or upstream provenance.
+*Traces to: HLR-REPLAY-EXEC-012, HLR-REPLAY-RUN-001, HLR-REPLAY-RUN-003, HLR-REPLAY-RUN-006*
+
 
 ## 7. Upstream Saved Input Parsing
 
