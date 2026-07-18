@@ -219,7 +219,62 @@ Execution occurrences, execution records, generated traces, physical timing obse
 *Traces to: HLR-REPLAY-EXEC-012, HLR-REPLAY-RUN-001, HLR-REPLAY-RUN-003, HLR-REPLAY-RUN-006*
 
 
-## 7. Upstream Saved Input Parsing
+## 7. Target Execution Profile
+
+### LLR-REPLAY-TPROF-001: Target Profile Applicability
+A target execution profile shall be optional unless required by the replay schema, schema version, operation, or requested target-specific or physical-timing claim. Profile-free execution shall remain permitted only when the schema and requested claim permit execution without a target execution profile.
+*Traces to: HLR-REPLAY-TPROF-001, HLR-REPLAY-TPROF-002, HLR-REPLAY-TPROF-007*
+
+### LLR-REPLAY-TPROF-002: Target Profile Content
+A target execution profile shall declare target-specific execution conditions required by the profile-bound claim and shall include a target-profile format identity and version, target-profile schema or applicability declaration, declared replay schema applicability when constrained, and the declared condition categories required by this contract.
+*Traces to: HLR-REPLAY-TPROF-001, HLR-REPLAY-TPROF-003*
+
+### LLR-REPLAY-TPROF-003: Target Profile Identity Fields
+Identity-bearing target-profile content shall consist of target-profile format identity and version, target-profile schema or applicability declaration, replay schema applicability constraints when present, declared target identity and configuration, implementation and runtime identity constraints, processor, accelerator, peripheral, and clock configuration constraints, operating-system, runtime, and scheduler environment constraints when applicable, resource limits and allocation constraints, applicable timing condition constraints, timing source and measurement constraints, observation or trace configuration constraints, and target-profile context-compatibility policy fields.
+*Traces to: HLR-REPLAY-TPROF-003, HLR-REPLAY-TPROF-004*
+
+### LLR-REPLAY-TPROF-004: Target Profile Identity Exclusions
+Target-profile identity shall exclude retained-run identity, execution-record identity, execution occurrence identity, generated functional trace, execution disposition, generated terminal outcome, physical timing observations, functional comparison results, timing evaluation results, replay evaluation results, diagnostics, storage path, load time, validation time, execution time, mutable locators, and post-creation verification results. Target-profile identity shall not participate in retained-run identity and shall not define execution-record identity.
+*Traces to: HLR-REPLAY-TPROF-004, HLR-REPLAY-RUN-004, HLR-REPLAY-EXEC-017*
+
+### LLR-REPLAY-TPROF-005: Target and Runtime Conditions
+A target execution profile shall declare target identity and configuration, implementation identity and version, runtime identity and version when applicable, processor or accelerator configuration, peripheral configuration, clock configuration, and operating-system, runtime, or scheduler environment constraints when those conditions are applicable to the target-specific claim.
+*Traces to: HLR-REPLAY-TPROF-003*
+
+### LLR-REPLAY-TPROF-006: Resource Conditions
+A target execution profile shall declare applicable resource limits and allocation constraints, including memory, stack, heap, storage, device, peripheral, accelerator, scheduling, priority, concurrency, or other resource constraints when those conditions are applicable to the target-specific claim.
+*Traces to: HLR-REPLAY-TPROF-003*
+
+### LLR-REPLAY-TPROF-007: Timing and Measurement Conditions
+A target execution profile shall declare timing deadlines, latency, interval, jitter, throughput, and synchronization tolerances when applicable, and shall declare timing source, measurement points, units, resolution, accuracy, and uncertainty required to support physical-timing claims. Declaring these conditions shall not make physical timing observations pass or fail; timing-result evaluation remains separately owned.
+*Traces to: HLR-REPLAY-TPROF-003, HLR-REPLAY-TPROF-006, HLR-REPLAY-EXEC-021*
+
+### LLR-REPLAY-TPROF-008: Observation and Trace Conditions
+A target execution profile shall declare observation and trace configuration required for the target-specific claim, including probe, logging, sampling, buffering, instrumentation, trace-level, collection, or synchronization configuration when applicable. Observation configuration shall not alter schema-defined functional trace equality unless the replay schema makes that information observable.
+*Traces to: HLR-REPLAY-TPROF-003, HLR-REPLAY-TGT-002*
+
+### LLR-REPLAY-TPROF-009: Execution Context Validation Inputs
+Execution-context validation shall consume the retained-run validation result with disposition `valid`, retained-run identity and schema identity, replay schema target-profile rules, declared execution-context facts, implementation support declarations, and the target execution profile when a target execution profile is required. Retained-run validation shall remain complete before execution-context validation begins.
+*Traces to: HLR-REPLAY-TPROF-002, HLR-REPLAY-TPROF-005, HLR-REPLAY-RUN-008*
+
+### LLR-REPLAY-TPROF-010: Deterministic Context Compatibility Result
+Execution-context validation shall produce a deterministic result with disposition `compatible` or `incompatible`. When a target execution profile is required, the compatibility result shall include the computed target-profile identity for the exact immutable target profile used. An incompatible result shall include a stable reason or deterministic ordered reason set. Validation time, checker path, storage path, diagnostic prose, and mutable locators shall not alter the compatibility result.
+*Traces to: HLR-REPLAY-TPROF-005*
+
+### LLR-REPLAY-TPROF-011: Stable Context Incompatibility Reasons
+Stable execution-context incompatibility reasons shall distinguish missing required target profile, unsupported target-profile format, unsupported target-profile applicability, retained-run/schema mismatch, implementation unsupported, target identity mismatch, target configuration mismatch, runtime or implementation mismatch, processor or accelerator mismatch, peripheral or clock mismatch, OS/runtime/scheduler mismatch, resource constraint mismatch, timing condition mismatch, measurement configuration mismatch, observation or trace configuration mismatch, and unsupported profile-free execution.
+*Traces to: HLR-REPLAY-TPROF-005, HLR-REPLAY-TPROF-006*
+
+### LLR-REPLAY-TPROF-012: Context Incompatibility Separation
+A context result with disposition `incompatible` shall not change the retained-run validation result, shall not be represented as execution disposition `accepted`, `rejected`, or `incomplete`, shall not be a replay rejection reason, shall not alter functional comparison, shall not define timing pass or fail, and shall not mutate retained-run identity, target-profile identity, or execution-record identity.
+*Traces to: HLR-REPLAY-TPROF-006, HLR-REPLAY-RUN-008, HLR-REPLAY-EXEC-009, HLR-REPLAY-EXEC-017*
+
+### LLR-REPLAY-TPROF-013: Profile-Free Execution Boundary
+When profile-free execution is permitted by the replay schema and requested claim, execution may proceed without target-profile compatibility validation against a target profile. The resulting execution shall not claim compatibility with a target profile and shall not make target-specific or physical-timing claims that require a compatible target execution profile.
+*Traces to: HLR-REPLAY-TPROF-001, HLR-REPLAY-TPROF-007*
+
+
+## 8. Upstream Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Upstream saved-input parsing shall accept only the initial text grammar before producing canonical input: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -242,7 +297,7 @@ Upstream saved-input parsing shall not execute replay frames; execution remains 
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 8. Retained Replay Witness Checker
+## 9. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -277,7 +332,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 9. Upstream Raw ADC Admitted Observation Projection
+## 10. Upstream Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Upstream raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
@@ -302,3 +357,13 @@ Upstream raw-ADC-derived replay input projection shall preserve `context_id` whe
 ### LLR-REPLAY-PROJ-006: Raw ADC Stable Projection
 The same admitted raw ADC observations and metadata shall produce the same upstream raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
+
+## 11. Target Agreement
+
+### LLR-REPLAY-TGT-001: Multi-Target Agreement Scope
+Multi-target agreement shall compare target executions of the same retained run only when those executions are comparable under the replay schema. When target-specific claims are involved, each target execution shall have a compatible context result for the applicable target execution profile before it participates in profile-bound multi-target agreement.
+*Traces to: HLR-REPLAY-TGT-001, HLR-REPLAY-TPROF-005*
+
+### LLR-REPLAY-TGT-002: Target Metadata Equality Boundary
+Target-specific diagnostic metadata, target execution profile metadata, and context compatibility results shall not participate in replay equality unless the replay schema makes that information observable. Multi-target agreement shall not validate target profiles, shall not evaluate physical timing pass or fail, and shall not redefine retained-run validation, execution disposition, or functional comparison.
+*Traces to: HLR-REPLAY-TGT-002, HLR-REPLAY-TPROF-006*

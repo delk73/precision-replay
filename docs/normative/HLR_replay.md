@@ -302,10 +302,34 @@ The `envelope` operation shall apply a named deterministic rule to a trace and p
 The existing raw ADC witness envelope shall remain a source-evidence judgment over admitted observations and shall not be redefined as a replay-trace envelope without an explicit requirement.
 
 
-## 10. Target Agreement
+## 10. Target Execution Profile
+
+### HLR-REPLAY-TPROF-001: Optional Target Execution Profile
+A target execution profile shall be an optional declaration of the target-specific execution conditions under which target-specific replay claims or physical-timing claims may be made. A retained run may be executed without a target execution profile only when the replay schema and requested claim permit profile-free execution.
+
+### HLR-REPLAY-TPROF-002: Target Profile Requirement Gate
+When a replay schema, schema version, operation, or requested claim requires target-specific execution conditions, replay support shall require a target execution profile before making the profile-bound execution claim. The requirement for a target execution profile shall be separate from retained-run validation, execution disposition, functional comparison, timing-result evaluation, and multi-target agreement.
+
+### HLR-REPLAY-TPROF-003: Target Profile Declared Conditions
+A target execution profile shall declare the execution conditions required for the target-specific claim, including target identity and configuration, implementation and runtime identity, processor, accelerator, peripheral, and clock configuration, operating-system, runtime, and scheduler environment when applicable, resource limits and allocation, timing deadlines, latency, interval, jitter, throughput, and synchronization tolerances when applicable, timing source, measurement points, resolution, accuracy, and uncertainty, and observation or trace configuration.
+
+### HLR-REPLAY-TPROF-004: Target Profile Identity
+Target-profile identity shall be derived from one canonical representation of identity-bearing target-profile content. Target-profile identity shall not be retained-run identity, shall not participate in retained-run identity, and shall not include generated execution evidence, execution-record identity, execution occurrence identity, physical timing observations, functional comparison results, timing evaluation results, diagnostics, storage path, load time, validation time, or mutable locators.
+
+### HLR-REPLAY-TPROF-005: Execution Context Validation
+Execution-context validation shall deterministically compare declared execution-context facts against the retained run, replay schema, implementation support, and the target execution profile when a target execution profile is required. The result shall be either `compatible` or `incompatible`; when a target execution profile is required, the result shall include the computed target-profile identity for the exact immutable target profile used. An incompatible result shall include one or more stable machine-readable incompatibility reasons, or a deterministic ordered reason set.
+
+### HLR-REPLAY-TPROF-006: Context Incompatibility Boundary
+Execution-context incompatibility shall not be retained-run validation failure, shall not be an execution disposition, shall not be execution rejection, and shall not produce timing pass or fail. A context-incompatible attempt may be excluded from profile-bound execution claims without redefining retained-run validity, generated physical timing observations, functional comparison, timing-result evaluation, or multi-target agreement.
+
+### HLR-REPLAY-TPROF-007: Profile-Free Execution Preservation
+Replay execution without a target execution profile shall remain valid when the replay schema and requested claim permit profile-free execution. Profile-free execution shall not make target-specific or physical-timing claims that require a compatible target execution profile.
+
+
+## 11. Target Agreement
 
 ### HLR-REPLAY-TGT-001: Multi-Target Replay Agreement
-For a replay schema supported on multiple targets, the same retained run shall produce the same schema-defined trace, execution outcome, comparison disposition, and first divergence.
+For a replay schema supported on multiple targets, the same retained run shall produce the same schema-defined trace, execution outcome, comparison disposition, and first divergence across target executions that are comparable under the schema. When target-specific claims are involved, each target execution shall have a compatible context result for its applicable target execution profile before participating in profile-bound multi-target agreement.
 
 ### HLR-REPLAY-TGT-002: Target Diagnostic Metadata Boundary
-Target-specific diagnostic metadata may differ and shall not participate in replay equality unless the replay schema makes that metadata observable.
+Target-specific diagnostic metadata, target execution profile metadata, and execution-context compatibility results may differ and shall not participate in replay equality unless the replay schema makes that information observable. Multi-target agreement shall not redefine target-profile validation, retained-run validation, execution disposition, functional comparison, or timing-result evaluation.
