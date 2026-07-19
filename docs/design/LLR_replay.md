@@ -352,7 +352,63 @@ Physical timing evaluation shall be deterministic over its inputs and shall not 
 *Traces to: HLR-REPLAY-TIME-006*
 
 
-## 10. Upstream Saved Input Parsing
+## 10. Generated Replay Evaluation
+
+### LLR-REPLAY-EVAL-001: Evaluation Inputs
+Replay evaluation shall consume the retained-run identity, the replay schema identity and version checked from the retained run, one execution record, one functional comparison result, the requested claim or evaluation scope, the timing result when physical timing evaluation applies, target-profile and execution-context references when required by the claim, and evidence-limit or claim-boundary inputs that are separate from retained-run functional content. Evaluation shall not independently select the replay schema identity.
+*Traces to: HLR-REPLAY-EVAL-001, HLR-REPLAY-EVAL-002, HLR-REPLAY-EVAL-003*
+
+### LLR-REPLAY-EVAL-002: Retained Run, Execution, and Comparison Association Checks
+Replay evaluation shall check that the retained run, execution record, and functional comparison result identify the same retained-run identity and compatible replay schema identity/version, and that the functional comparison result identifies the execution-record identity being evaluated. A missing or mismatched retained-run, schema, execution-record, or comparison-result association shall produce evaluation disposition `invalid` with a stable reason or deterministic ordered reason set and shall not alter the referenced execution or comparison disposition.
+*Traces to: HLR-REPLAY-EVAL-001, HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-006*
+
+### LLR-REPLAY-EVAL-003: Optional Timing Result Handling
+When the replay schema or requested claim requires physical timing evaluation, replay evaluation shall include the timing-result identity or stable timing-result reference and timing disposition. When timing evaluation does not apply, replay evaluation shall omit timing disposition or record a stable not-applicable timing marker without inventing timing pass, fail, or insufficient.
+*Traces to: HLR-REPLAY-EVAL-002, HLR-REPLAY-TIME-001, HLR-REPLAY-TIME-004*
+
+### LLR-REPLAY-EVAL-004: Timing Association Checks
+When a timing result is required, replay evaluation shall check that the timing result identifies the execution-record identity and replay schema identity/version being evaluated. When the timing result is profile-bound, replay evaluation shall check that the timing result identifies the applicable target-profile identity. A missing or mismatched required timing association shall produce evaluation disposition `invalid` with a stable reason or deterministic ordered reason set and shall not alter timing disposition.
+*Traces to: HLR-REPLAY-EVAL-002, HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-006, HLR-REPLAY-TIME-006*
+
+### LLR-REPLAY-EVAL-005: Target Profile and Context References
+When a target execution profile or execution-context compatibility result is required for the requested claim, replay evaluation shall include stable references to the applicable target-profile identity and execution-context compatibility result. Replay evaluation shall check that the target-profile reference identifies the applicable target-profile identity and that the execution-context compatibility result identifies the execution context being evaluated and the applicable target-profile identity. A missing or mismatched required target-profile or execution-context compatibility association shall produce evaluation disposition `invalid` with a stable reason or deterministic ordered reason set. Those references shall not copy, redefine, or validate target-profile content or execution-context compatibility.
+*Traces to: HLR-REPLAY-EVAL-002, HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-005, HLR-REPLAY-TPROF-005*
+
+### LLR-REPLAY-EVAL-006: Evidence Limitation and Claim Boundary Representation
+Replay evaluation shall represent evidence limitations and claim boundaries as stable machine-readable limitation identifiers or a deterministic ordered limitation set, with stable references to the source evidence when applicable. Limitations may identify validation-result evidence, execution, comparison, timing, target-profile context, provenance, diagnostic, or optional or non-required association evidence, but shall not convert that evidence into retained-run content or source-result content and shall not replace structural validation of required evaluation inputs.
+*Traces to: HLR-REPLAY-EVAL-003, HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-005*
+
+### LLR-REPLAY-EVAL-007: Stable Evaluation Result Content
+A replay evaluation result shall include evaluation-result format identity and version, retained-run identity, replay schema identity and version, execution-record identity, comparison-result identity or stable comparison-result reference, comparison disposition, timing-result identity or stable timing-result reference and timing disposition when timing applies, target-profile identity and context compatibility reference when applicable, requested claim or evaluation scope, evaluation disposition, stable reason or deterministic ordered reason set when applicable, evidence limitations, and claim boundaries.
+*Traces to: HLR-REPLAY-EVAL-001, HLR-REPLAY-EVAL-002, HLR-REPLAY-EVAL-003, HLR-REPLAY-EVAL-004*
+
+### LLR-REPLAY-EVAL-008: Evaluation Identity and Reference Stability
+When replay evaluation identity is represented by a digest, it shall be derived from one canonical representation of stable evaluation-result content. Evaluation identity and stable references shall exclude storage path, checker text, generation time, validation time, execution time, mutable locators, diagnostic prose, and UI state.
+*Traces to: HLR-REPLAY-EVAL-001, HLR-REPLAY-EVAL-005*
+
+### LLR-REPLAY-EVAL-009: Deterministic Non-Mutation
+Replay evaluation shall be deterministic over its inputs and shall not mutate retained-run validation, replay execution, execution records, functional comparison results, timing results, target execution profiles, execution-context compatibility results, diagnostics, retained-run identity, execution-record identity, comparison-result identity, timing-result identity, or target-profile identity.
+*Traces to: HLR-REPLAY-EVAL-005, HLR-REPLAY-EVAL-006*
+
+### LLR-REPLAY-EVAL-010: Checker Text Non-Authority
+Checker text may report evaluation evidence or retained checker status, but shall not be the authoritative replay evaluation result and shall not define execution-record content, functional comparison content, timing-result content, target-profile context, evidence-limit semantics, or claim-boundary semantics.
+*Traces to: HLR-REPLAY-EVAL-007*
+
+
+### LLR-REPLAY-EVAL-011: Deterministic Evaluation Disposition
+Replay evaluation shall derive exactly one evaluation disposition from the requested claim or evaluation scope, associated source dispositions and result content, required structural association checks, and recorded evidence limitations. The derivation shall be deterministic and shall not depend on storage path, checker text, generation time, mutable locators, diagnostic prose, or UI state.
+*Traces to: HLR-REPLAY-EVAL-004*
+
+### LLR-REPLAY-EVAL-012: Disposition Distinction
+Evaluation disposition `invalid` shall be used only for structurally invalid required evaluation inputs or associations. Evaluation disposition `insufficient` shall be used when structurally valid usable evidence cannot determine whether the requested claim is supported. Evaluation disposition `not_supported` shall be used when structurally valid evidence determines that the requested claim is not supported within the recorded boundaries. Evaluation disposition `supported` shall be used when structurally valid evidence supports the requested claim within the recorded boundaries.
+*Traces to: HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-003*
+
+### LLR-REPLAY-EVAL-013: Source Disposition Non-Mutation
+An evaluation disposition of `supported`, `not_supported`, `insufficient`, or `invalid` shall not rewrite retained-run validation disposition, execution disposition, functional comparison disposition, timing disposition, execution-context compatibility disposition, or any stable source reason associated with those dispositions.
+*Traces to: HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-006*
+
+
+## 11. Upstream Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Upstream saved-input parsing shall accept only the initial text grammar before producing canonical input: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -375,7 +431,7 @@ Upstream saved-input parsing shall not execute replay frames; execution remains 
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 11. Retained Replay Witness Checker
+## 12. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -410,7 +466,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 12. Upstream Raw ADC Admitted Observation Projection
+## 13. Upstream Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Upstream raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
@@ -436,7 +492,7 @@ Upstream raw-ADC-derived replay input projection shall preserve `context_id` whe
 The same admitted raw ADC observations and metadata shall produce the same upstream raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
 
-## 13. Target Agreement
+## 14. Target Agreement
 
 ### LLR-REPLAY-TGT-001: Multi-Target Agreement Scope
 Multi-target agreement shall compare target executions of the same retained run only when those executions are comparable under the replay schema. When target-specific claims are involved, each target execution shall have a compatible context result for the applicable target execution profile before it participates in profile-bound multi-target agreement.

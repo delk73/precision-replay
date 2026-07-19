@@ -240,18 +240,26 @@ Replay comparison shall be deterministic and shall not alter replay execution, t
 
 ## 8. Replay Evaluation and Witness
 
-### HLR-REPLAY-EVAL-001: Generated Replay Evaluation Evidence
-A replay evaluation shall be generated evidence associated with a retained-run identity.
+### HLR-REPLAY-EVAL-001: Evaluation Associations
+A replay evaluation shall be generated evidence that identifies the retained run, execution record, and functional comparison result it evaluates. The retained run shall determine the replay schema identity for the evaluation.
 
-The associated retained run shall determine the replay schema identity for the evaluation.
+### HLR-REPLAY-EVAL-002: Timing and Target Context
+When physical timing evaluation applies, the replay evaluation shall include the timing result. When a target execution profile or execution-context compatibility result is required for the evaluated claim, the replay evaluation shall record stable references to that target-profile context.
 
-The replay evaluation shall contain the generated trace, generated execution disposition and outcome, comparison disposition, first divergence when present, and target identity when applicable.
+### HLR-REPLAY-EVAL-003: Evidence Limits and Claim Boundaries
+A replay evaluation shall record applicable evidence limitations and claim boundaries, including limitations from validation, execution evidence, functional comparison, timing evaluation, target-profile context, provenance, or diagnostics when those limitations bound the requested claim.
 
-### HLR-REPLAY-EVAL-002: Evaluation Non-Mutation
-A replay evaluation shall not mutate the retained run.
+### HLR-REPLAY-EVAL-004: Evaluation Outcome Disposition
+A replay evaluation shall produce exactly one evaluation disposition: `supported`, `not_supported`, `insufficient`, or `invalid`. `supported` shall mean the requested claim is supported within the recorded boundaries. `not_supported` shall mean valid evidence does not support the requested claim. `insufficient` shall mean usable evidence cannot determine support. `invalid` shall mean required associations or evaluation inputs are structurally invalid. The evaluation disposition shall be derived deterministically from source results, requested scope, and limitations. Invalid association handling shall not alter source dispositions, and evidence limitations shall not replace structural validation.
 
-### HLR-REPLAY-EVAL-003: Checker Text Evidence Boundary
-Checker text shall represent evaluation evidence and shall not define execution or comparison semantics.
+### HLR-REPLAY-EVAL-005: Referenced Content Ownership
+A replay evaluation shall reference execution-record content, functional comparison content, timing-result content, target-profile context, and diagnostics when applicable, but shall not take ownership of or redefine that content.
+
+### HLR-REPLAY-EVAL-006: Evaluation Non-Mutation
+A replay evaluation shall not alter retained-run validity, execution disposition, execution-record content, functional comparison disposition, timing disposition, retained-run identity, execution-record identity, comparison-result identity, timing-result identity, or target-profile identity.
+
+### HLR-REPLAY-EVAL-007: Checker Text Boundary
+Checker text shall not be the authoritative replay evaluation result and shall not define execution, comparison, timing, target-profile, evidence-limit, or claim-boundary semantics.
 
 ### HLR-REPLAY-CHECK-001: Retained Saved Input Source Check
 A retained saved replay input shall be checked from source files.
@@ -290,7 +298,7 @@ The checked-in replay checker entrypoint shall report invalid invocation, input 
 The `record` operation shall create a retained run from canonical input produced through a route permitted by the applicable upstream canonicalization contract for the declared replay schema.
 
 ### HLR-REPLAY-OPS-002: Replay Operation
-The `replay` operation shall validate a retained run, execute it, compare generated behavior with its reference, and produce a replay evaluation.
+The `replay` operation shall validate a retained run, execute it, compare generated behavior with its reference, perform physical timing evaluation when required, and produce a replay evaluation.
 
 ### HLR-REPLAY-OPS-003: Diff Operation
 The `diff` operation shall compare two retained runs without treating either retained run as authoritative; swapping inputs shall not change `exact`, `diverged`, or `incompatible`.
