@@ -216,26 +216,26 @@ Terminal outcome may participate in functional comparison under schema rules, bu
 
 ## 7. Comparison
 
-### HLR-REPLAY-COMP-001: Trace Comparison
-Replay comparison shall compare the generated trace against the retained reference trace.
+### HLR-REPLAY-COMP-001: Functional Behavior Comparison
+Replay comparison shall compare generated functional behavior from an execution record with the retained functional reference from the associated retained run. Comparison shall use the retained run's declared replay schema and retained functional comparison parameters.
 
-### HLR-REPLAY-COMP-002: Outcome Comparison
-Replay comparison shall compare the generated execution disposition and schema-defined terminal outcome against the retained reference disposition and outcome.
+### HLR-REPLAY-COMP-002: Comparison Compatibility
+Replay comparison shall produce `incompatible` when the retained run, execution record, replay schema, schema version, retained-run identity association, or required comparison parameters are not compatible for comparison.
 
 ### HLR-REPLAY-COMP-003: Comparison Dispositions
-Replay comparison shall produce `exact` when trace and execution outcome are equal, `diverged` when comparison is compatible but trace or outcome differs, and `incompatible` when required format, schema, version, or comparison metadata is incompatible.
+Replay comparison shall produce exactly one disposition: `exact`, `diverged`, or `incompatible`. `exact` shall mean the generated functional trace, generated execution disposition, and generated terminal outcome, when applicable, matches the retained functional reference under the replay schema and retained comparison parameters. `diverged` shall mean comparison is compatible but generated functional behavior differs from the retained functional reference.
 
 ### HLR-REPLAY-COMP-004: First Divergence Reporting
-Replay comparison shall report the first differing trace position; a prefix-length difference shall diverge at the first missing position, and matching traces with different terminal outcomes shall diverge after the trace.
+For a `diverged` comparison, replay comparison shall identify the first divergence. The first divergence shall belong to comparison, not execution rejection. A trace-element difference shall diverge at the first differing trace position; a trace-prefix length difference shall diverge at the first missing trace position; matching traces with different execution disposition or terminal outcome shall diverge after the trace.
 
 ### HLR-REPLAY-COMP-005: Expected Rejection Exactness
-Matching expected rejection may compare as `exact`.
+Matching expected rejection may compare as `exact` when the generated rejection behavior matches the retained reference rejection behavior under the replay schema and retained comparison parameters.
 
 ### HLR-REPLAY-COMP-006: Incomplete Reference Exactness Boundary
-Incomplete outcomes may compare as `exact` only when the replay schema permits incomplete reference outcomes.
+Incomplete generated behavior may compare as `exact` only when the replay schema permits incomplete reference behavior and the generated incomplete behavior matches that retained incomplete reference under the retained comparison parameters.
 
-### HLR-REPLAY-COMP-007: Comparison-Owned Divergence
-First divergence shall belong to comparison, not execution rejection.
+### HLR-REPLAY-COMP-007: Deterministic Non-Mutating Comparison
+Replay comparison shall be deterministic and shall not alter replay execution, the execution record, the retained run, retained functional reference material, retained comparison parameters, retained-run identity, execution-record identity, or upstream provenance.
 
 
 ## 8. Replay Evaluation and Witness

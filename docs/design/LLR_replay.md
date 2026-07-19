@@ -219,7 +219,50 @@ Execution occurrences, execution records, generated traces, physical timing obse
 *Traces to: HLR-REPLAY-EXEC-012, HLR-REPLAY-RUN-001, HLR-REPLAY-RUN-003, HLR-REPLAY-RUN-006*
 
 
-## 7. Target Execution Profile
+## 7. Functional Comparison
+
+### LLR-REPLAY-COMP-001: Comparison Inputs
+Functional comparison shall consume one retained run, one execution record generated for that retained run, the retained run's replay schema identity and version, retained functional reference trace, retained reference execution disposition, retained reference terminal outcome when applicable, generated functional trace, generated execution disposition, generated terminal outcome when applicable, and retained functional comparison parameters.
+*Traces to: HLR-REPLAY-COMP-001*
+
+### LLR-REPLAY-COMP-002: Retained-Run and Execution-Record Association
+Functional comparison shall associate the execution record to the retained run by retained-run identity and replay schema identity/version. A missing or mismatched association shall produce comparison disposition `incompatible`.
+*Traces to: HLR-REPLAY-COMP-001, HLR-REPLAY-COMP-002*
+
+### LLR-REPLAY-COMP-003: Compatibility Checks
+Functional comparison shall check that the retained run and execution record use compatible replay schema identity/version values, that the schema-defined comparison rules are available, and that required retained functional reference material and retained comparison parameters are present in comparison-usable form. Compatibility checking shall not execute or validate the retained run, shall not validate target compatibility, and shall not evaluate physical timing.
+*Traces to: HLR-REPLAY-COMP-002*
+
+### LLR-REPLAY-COMP-004: Trace Comparison
+For compatible inputs, functional comparison shall compare generated functional trace against retained reference trace using the declared replay schema's trace order and trace equality rules with the retained comparison parameters.
+*Traces to: HLR-REPLAY-COMP-001, HLR-REPLAY-COMP-003*
+
+### LLR-REPLAY-COMP-005: Outcome Comparison
+For compatible inputs, functional comparison shall compare generated execution disposition and generated terminal outcome against retained reference execution disposition and retained reference terminal outcome using the declared replay schema and retained comparison parameters. Outcome comparison shall not redefine the execution disposition recorded by execution.
+*Traces to: HLR-REPLAY-COMP-001, HLR-REPLAY-COMP-003*
+
+### LLR-REPLAY-COMP-006: Expected Rejection and Incomplete Exactness
+A generated rejection may compare as `exact` when it matches retained reference rejection behavior under schema rules and retained comparison parameters. Generated incomplete behavior may compare as `exact` only when the replay schema permits incomplete reference behavior and the generated incomplete behavior matches the retained incomplete reference.
+*Traces to: HLR-REPLAY-COMP-005, HLR-REPLAY-COMP-006*
+
+### LLR-REPLAY-COMP-007: First-Divergence Selection
+For comparison disposition `diverged`, functional comparison shall report the earliest schema-ordered mismatch. A differing trace element shall be reported at its trace position, a trace-prefix length mismatch shall be reported at the first missing trace position, and an execution disposition or terminal-outcome mismatch after equal traces shall be reported after the trace. First-divergence reporting shall belong to comparison and shall not create or change an execution rejection reason.
+*Traces to: HLR-REPLAY-COMP-004*
+
+### LLR-REPLAY-COMP-008: Mismatch Evidence
+A `diverged` comparison result shall include stable mismatch evidence sufficient to identify whether the first divergence is a trace-element mismatch, trace-prefix length mismatch, execution-disposition mismatch, or terminal-outcome mismatch, including the relevant generated and retained values or stable references to them when applicable.
+*Traces to: HLR-REPLAY-COMP-004*
+
+### LLR-REPLAY-COMP-009: Comparison Result Content
+A functional comparison result shall include comparison-result format identity and version, retained-run identity, execution-record identity, replay schema identity and version, comparison disposition, stable incompatibility reason or deterministic ordered reason set when disposition is `incompatible`, and first-divergence evidence when disposition is `diverged`. The comparison result shall not define the final replay evaluation.
+*Traces to: HLR-REPLAY-COMP-002, HLR-REPLAY-COMP-003, HLR-REPLAY-COMP-004*
+
+### LLR-REPLAY-COMP-010: Deterministic Non-Mutation
+Functional comparison shall be deterministic over its inputs and shall not mutate replay execution, the execution record, the retained run, retained functional reference material, retained comparison parameters, retained-run identity, execution-record identity, target-profile information, physical timing observations, diagnostics, or upstream provenance.
+*Traces to: HLR-REPLAY-COMP-007*
+
+
+## 8. Target Execution Profile
 
 ### LLR-REPLAY-TPROF-001: Target Profile Applicability
 A target execution profile shall be optional unless required by the replay schema, schema version, operation, or requested target-specific or physical-timing claim. Profile-free execution shall remain permitted only when the schema and requested claim permit execution without a target execution profile.
@@ -274,7 +317,7 @@ When profile-free execution is permitted by the replay schema and requested clai
 *Traces to: HLR-REPLAY-TPROF-001, HLR-REPLAY-TPROF-007*
 
 
-## 8. Upstream Saved Input Parsing
+## 9. Upstream Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Upstream saved-input parsing shall accept only the initial text grammar before producing canonical input: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -297,7 +340,7 @@ Upstream saved-input parsing shall not execute replay frames; execution remains 
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 9. Retained Replay Witness Checker
+## 10. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -332,7 +375,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 10. Upstream Raw ADC Admitted Observation Projection
+## 11. Upstream Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Upstream raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
@@ -358,7 +401,7 @@ Upstream raw-ADC-derived replay input projection shall preserve `context_id` whe
 The same admitted raw ADC observations and metadata shall produce the same upstream raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
 
-## 11. Target Agreement
+## 12. Target Agreement
 
 ### LLR-REPLAY-TGT-001: Multi-Target Agreement Scope
 Multi-target agreement shall compare target executions of the same retained run only when those executions are comparable under the replay schema. When target-specific claims are involved, each target execution shall have a compatible context result for the applicable target execution profile before it participates in profile-bound multi-target agreement.
