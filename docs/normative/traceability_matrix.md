@@ -163,7 +163,13 @@ Status-token normalization may be applied incrementally by section; rows without
 | Pending execution-context validation model | **HLR-REPLAY-TPROF-005** / **LLR-REPLAY-TPROF-009** / **LLR-REPLAY-TPROF-010** / **LLR-REPLAY-TPROF-011** | Status: traced. HLR and LLR are defined for deterministic execution-context validation against the valid retained run, replay schema, implementation support declarations, and target execution profile when required. The result is `compatible` or `incompatible`, includes the computed target-profile identity when a profile is required, and carries stable machine-readable incompatibility reasons when incompatible. Implementation and verification remain pending. |
 | Pending target-profile boundary model | **HLR-REPLAY-TPROF-006** / **HLR-REPLAY-TPROF-007** / **LLR-REPLAY-TPROF-012** / **LLR-REPLAY-TPROF-013** | Status: traced. HLR and LLR are defined for keeping context incompatibility separate from retained-run validation failure, execution rejection, execution disposition, functional comparison, and timing-result evaluation. Profile-free execution remains valid only when permitted by schema and claim rules, and physical timing observations remain execution-record evidence rather than timing pass/fail. Implementation and verification remain pending. |
 
-### 2.8 Replay Evaluation, Operations, Envelope, and Target Agreement
+### 2.8 Physical Timing Evaluation
+
+| Code Component / Implementation Block | Requirement ID | Traceability Verification |
+| :--- | :--- | :--- |
+| Pending physical timing evaluation model | **HLR-REPLAY-TIME-001** / **HLR-REPLAY-TIME-002** / **HLR-REPLAY-TIME-003** / **HLR-REPLAY-TIME-004** / **HLR-REPLAY-TIME-005** / **HLR-REPLAY-TIME-006** / **LLR-REPLAY-TIME-001** / **LLR-REPLAY-TIME-002** / **LLR-REPLAY-TIME-003** / **LLR-REPLAY-TIME-004** / **LLR-REPLAY-TIME-005** / **LLR-REPLAY-TIME-006** / **LLR-REPLAY-TIME-007** / **LLR-REPLAY-TIME-008** | Status: traced. HLR and LLR are defined for applying physical timing evaluation only when a schema or requested claim requires it, using execution-record physical timing observations with the applicable target execution profile after compatible execution-context validation. Timing results can be `pass`, `fail`, or `insufficient`; uncertainty and missing or unusable evidence bound the result. Timing evaluation remains separate from retained-run validity, execution disposition, functional comparison, final replay evaluation, and claim packaging. Implementation and verification remain pending. |
+
+### 2.9 Replay Evaluation, Operations, Envelope, and Target Agreement
 
 | Code Component / Implementation Block | Requirement ID | Traceability Verification |
 | :--- | :--- | :--- |

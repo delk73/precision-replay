@@ -317,7 +317,42 @@ When profile-free execution is permitted by the replay schema and requested clai
 *Traces to: HLR-REPLAY-TPROF-001, HLR-REPLAY-TPROF-007*
 
 
-## 9. Upstream Saved Input Parsing
+## 9. Physical Timing Evaluation
+
+### LLR-REPLAY-TIME-001: Timing Evaluation Inputs
+Physical timing evaluation shall consume the replay schema identity and version, the requested timing claim or schema timing requirement, one execution record, the physical timing observations from that execution record, the applicable target execution profile, and the execution-context compatibility result for that profile when profile-bound timing evaluation is required.
+*Traces to: HLR-REPLAY-TIME-001, HLR-REPLAY-TIME-002*
+
+### LLR-REPLAY-TIME-002: Target Profile and Execution Record Association
+Physical timing evaluation shall associate the execution record to the applicable target execution profile by the target-profile identity reported by the compatible execution-context validation result. A missing or mismatched association shall prevent timing `pass` or `fail`.
+*Traces to: HLR-REPLAY-TIME-002, HLR-REPLAY-TIME-003*
+
+### LLR-REPLAY-TIME-003: Compatible Context Prerequisite
+Profile-bound physical timing evaluation shall require an execution-context validation result with disposition `compatible` for the execution record and exact immutable target execution profile used by the timing evaluation. A missing, incompatible, or unusable context result shall produce timing disposition `insufficient`.
+*Traces to: HLR-REPLAY-TIME-003, HLR-REPLAY-TIME-005*
+
+### LLR-REPLAY-TIME-004: Measurement and Limit Comparison
+For compatible profile-bound inputs, physical timing evaluation shall compare each required usable physical timing observation against the corresponding timing deadline, latency, interval, jitter, throughput, or synchronization limit declared by the applicable target execution profile. Timing evaluation shall use the units, measurement points, and timing source declared by the observation and required by the profile.
+*Traces to: HLR-REPLAY-TIME-002, HLR-REPLAY-TIME-004*
+
+### LLR-REPLAY-TIME-005: Uncertainty Treatment
+Physical timing evaluation shall apply declared measurement resolution, accuracy, and uncertainty before deciding `pass` or `fail`. If uncertainty permits both a conforming and non-conforming interpretation for a required limit, the result shall be `insufficient` unless the replay schema or requested claim declares a deterministic conservative rule for that timing evaluation.
+*Traces to: HLR-REPLAY-TIME-004, HLR-REPLAY-TIME-005*
+
+### LLR-REPLAY-TIME-006: Missing or Unusable Evidence Handling
+Physical timing evaluation shall produce timing disposition `insufficient` when required physical timing observations, profile timing limits, measurement metadata, timing semantics, or profile association evidence are missing, unsupported, inconsistent, or unusable for the requested timing claim.
+*Traces to: HLR-REPLAY-TIME-005*
+
+### LLR-REPLAY-TIME-007: Stable Timing Result Content
+A timing evaluation result shall include timing-result format identity and version, replay schema identity and version, execution-record identity, target-profile identity when profile-bound, requested timing claim or schema timing requirement, timing disposition, stable reason or deterministic ordered reason set when disposition is `fail` or `insufficient`, and stable references to the observations and profile limits used when applicable. The timing evaluation result shall not define the final replay evaluation or claim package.
+*Traces to: HLR-REPLAY-TIME-004, HLR-REPLAY-TIME-005*
+
+### LLR-REPLAY-TIME-008: Deterministic Non-Mutation
+Physical timing evaluation shall be deterministic over its inputs and shall not mutate retained-run validation, replay execution, execution disposition, execution-record content, physical timing observations, functional comparison, retained-run identity, execution-record identity, target-profile identity, target-profile content, diagnostics, or upstream provenance.
+*Traces to: HLR-REPLAY-TIME-006*
+
+
+## 10. Upstream Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Upstream saved-input parsing shall accept only the initial text grammar before producing canonical input: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -340,7 +375,7 @@ Upstream saved-input parsing shall not execute replay frames; execution remains 
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 10. Retained Replay Witness Checker
+## 11. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -375,7 +410,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 11. Upstream Raw ADC Admitted Observation Projection
+## 12. Upstream Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Upstream raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
@@ -401,7 +436,7 @@ Upstream raw-ADC-derived replay input projection shall preserve `context_id` whe
 The same admitted raw ADC observations and metadata shall produce the same upstream raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
 
-## 12. Target Agreement
+## 13. Target Agreement
 
 ### LLR-REPLAY-TGT-001: Multi-Target Agreement Scope
 Multi-target agreement shall compare target executions of the same retained run only when those executions are comparable under the replay schema. When target-specific claims are involved, each target execution shall have a compatible context result for the applicable target execution profile before it participates in profile-bound multi-target agreement.

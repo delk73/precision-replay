@@ -326,7 +326,28 @@ Execution-context incompatibility shall not be retained-run validation failure, 
 Replay execution without a target execution profile shall remain valid when the replay schema and requested claim permit profile-free execution. Profile-free execution shall not make target-specific or physical-timing claims that require a compatible target execution profile.
 
 
-## 11. Target Agreement
+## 11. Physical Timing Evaluation
+
+### HLR-REPLAY-TIME-001: Timing Evaluation Applicability
+Physical timing evaluation shall apply only when the replay schema or requested claim requires timing evidence.
+
+### HLR-REPLAY-TIME-002: Timing Evaluation Evidence and Profile
+Physical timing evaluation shall use physical timing observations from the execution record and the applicable target execution profile. It shall not redefine physical timing observations or target execution profiles.
+
+### HLR-REPLAY-TIME-003: Compatible Execution Context Prerequisite
+Profile-bound physical timing evaluation shall require a compatible execution-context validation result for the execution record and the applicable target execution profile before producing timing `pass` or `fail`.
+
+### HLR-REPLAY-TIME-004: Timing Result Dispositions
+Physical timing evaluation shall produce exactly one timing result disposition: `pass`, `fail`, or `insufficient`. `pass` shall mean usable observations satisfy the applicable profile timing limits after required uncertainty treatment. `fail` shall mean usable observations violate at least one applicable profile timing limit after required uncertainty treatment. `insufficient` shall mean the available evidence cannot support either `pass` or `fail`.
+
+### HLR-REPLAY-TIME-005: Evidence Limitation Boundary
+Measurement uncertainty, missing timing observations, missing profile timing limits, incompatible context, unsupported timing semantics, or unusable timing evidence shall produce `insufficient` when they prevent a supported `pass` or `fail`.
+
+### HLR-REPLAY-TIME-006: Timing Evaluation Non-Mutation
+Physical timing evaluation shall be deterministic over its inputs and shall not alter retained-run validity, execution disposition, execution-record content, physical timing observations, functional comparison, retained-run identity, execution-record identity, or target-profile identity.
+
+
+## 12. Target Agreement
 
 ### HLR-REPLAY-TGT-001: Multi-Target Replay Agreement
 For a replay schema supported on multiple targets, the same retained run shall produce the same schema-defined trace, execution outcome, comparison disposition, and first divergence across target executions that are comparable under the schema. When target-specific claims are involved, each target execution shall have a compatible context result for its applicable target execution profile before participating in profile-bound multi-target agreement.
