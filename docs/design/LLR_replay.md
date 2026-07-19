@@ -408,7 +408,134 @@ An evaluation disposition of `supported`, `not_supported`, `insufficient`, or `i
 *Traces to: HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-006*
 
 
-## 11. Upstream Saved Input Parsing
+
+## 11. Replay Operations and Trace Envelope
+
+### LLR-REPLAY-OPS-001: Record Operation Inputs
+The `record` operation shall consume replay schema identity and version, canonical input produced through a route permitted by the applicable upstream canonicalization contract, modeled-execution dependency bindings for every dependency declared by the replay schema, retained functional reference material, schema-required functional comparison parameters, and any required immutable provenance association reference separately owned by the upstream canonicalization contract.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-RUN-001, HLR-REPLAY-ORIGIN-001*
+
+### LLR-REPLAY-OPS-002: Record Schema Identity and Version
+The `record` operation shall bind the created retained run to the declared replay schema identity and version, and that schema identity and version shall resolve to the immutable schema contract used for canonical input meaning, modeled-execution dependencies, retained functional reference material, and functional comparison parameters.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-SCHEMA-006*
+
+### LLR-REPLAY-OPS-003: Record Canonical Input Route Gate
+The `record` operation shall require evidence that the canonical input was produced through a route permitted by the applicable upstream canonicalization contract for the declared replay schema. The operation shall not admit upstream source material, parse raw source material, or project source evidence into canonical input.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-SYS-002, HLR-REPLAY-ORIGIN-001*
+
+### LLR-REPLAY-OPS-004: Record Retained Functional Content
+The `record` operation shall construct retained-run content from canonical input, modeled-execution dependency bindings, retained functional reference material, and functional comparison parameters. Retained functional reference material shall remain separate from physical timing reference material, generated execution evidence, generated evaluations, and upstream source admission evidence.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-RUN-001, HLR-REPLAY-RUN-005*
+
+### LLR-REPLAY-OPS-005: Deterministic Retained-Run Construction
+Given the same retained-run format identity and version, replay schema identity and version, canonical input, modeled-execution dependency bindings, retained functional reference material, and functional comparison parameters, the `record` operation shall construct the same identity-bearing retained-run content and retained-run identity. Retained-run identity generation shall use the retained-run identity contract.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-RUN-003*
+
+### LLR-REPLAY-OPS-006: Record Operation Output
+The `record` operation shall output the created retained run and its retained-run identity or stable retained-run identity reference. The `record` operation output shall not include a retained-run validation result, execution record, functional comparison result, timing result, execution-context compatibility result, generated replay evaluation, replay-trace envelope judgment, or retained-run diff result.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-RUN-001*
+
+### LLR-REPLAY-OPS-007: Record Operation Boundaries
+The `record` operation shall not perform retained-run validation, replay execution, functional comparison, execution-context compatibility validation, physical timing evaluation, generated replay evaluation, replay-trace envelope judgment, retained-run diff, upstream parsing, upstream source admission, or upstream projection.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-RUN-002, HLR-REPLAY-EVAL-001*
+
+### LLR-REPLAY-OPS-008: Record Non-Mutation
+The `record` operation shall be deterministic over its inputs and shall not mutate canonical input, modeled-execution dependency inputs, retained functional reference inputs, functional comparison parameter inputs, separately owned upstream evidence, source admission records, provenance associations, or upstream canonicalization records.
+*Traces to: HLR-REPLAY-OPS-001, HLR-REPLAY-RUN-006*
+
+### LLR-REPLAY-OPS-009: Replay Operation Inputs
+The `replay` operation shall consume one retained run, the requested claim or replay evaluation scope, implementation support declarations required for execution and context validation, and any required immutable provenance association references. When the schema or requested claim requires target-specific or physical-timing evidence, it shall also consume the applicable target execution profile, required execution-context compatibility inputs, and timing-claim parameters; physical timing observations shall be consumed from the execution record after execution begins.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-TPROF-001, HLR-REPLAY-TIME-001*
+
+### LLR-REPLAY-OPS-010: Replay Orchestration Order
+The `replay` operation shall orchestrate source operations in this order: retained-run validation; termination before execution when validation disposition is `invalid`; execution when validation disposition is `valid`; execution-record production; functional comparison; execution-context compatibility validation and physical timing evaluation when required by the schema or requested claim; and generated replay evaluation.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-RUN-008, HLR-REPLAY-EVAL-001*
+
+### LLR-REPLAY-OPS-011: Replay Invalid Validation Stop
+When retained-run validation produces disposition `invalid`, the `replay` operation shall stop before execution and shall not produce an execution record, functional comparison result, timing result, or generated replay evaluation that represents execution as having begun. The validation result shall retain its own disposition and stable reasons.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-RUN-007, HLR-REPLAY-RUN-008*
+
+### LLR-REPLAY-OPS-012: Replay Stable Output References
+The `replay` operation output shall contain stable references to each source result it produced or consumed, including retained-run validation result, execution record when execution began, functional comparison result when comparison ran, execution-context compatibility result when required, timing result when required, and generated replay evaluation when produced. Each source result shall preserve its own disposition and stable reasons.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-EVAL-001, HLR-REPLAY-EVAL-004*
+
+### LLR-REPLAY-OPS-013: Replay Association Checks
+Before using a source result in later orchestration steps, the `replay` operation shall check required structural associations among retained-run identity, replay schema identity and version, validation-result reference, execution-record identity, comparison-result identity, target-profile identity, compatibility-result identity or stable reference, timing-result identity, and evaluation-result identity as applicable. Missing or mismatched required associations shall be represented by the replay-operation report, or by the generated replay evaluation when evaluation is reached and owns that association, as structural invalidity with stable reasons, not only as evidence limitations.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-EVAL-004, HLR-REPLAY-EVAL-005*
+
+### LLR-REPLAY-OPS-014: Replay Disposition Separation
+The `replay` operation shall not collapse retained-run validation disposition, execution disposition, functional comparison disposition, execution-context compatibility disposition, timing disposition, or generated replay evaluation disposition into one shared disposition. Operation-level reporting may summarize orchestration using a separate replay-operation status and stable references to source results, but shall not rewrite any source disposition.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-EVAL-004, LLR-REPLAY-EVAL-013*
+
+### LLR-REPLAY-OPS-015: Replay Operation Report
+A replay-operation report shall include replay-operation report format identity and version, retained-run identity when available, replay schema identity and version when available, requested claim or replay evaluation scope, replay-operation status `completed` or `blocked`, stable references to each source result produced or consumed, the orchestration step at which processing stopped when blocked, stable orchestration reasons or a deterministic ordered reason set when blocked, and report identity or stable report reference derived from canonical report content. Replay-operation status shall describe orchestration completion only and shall not replace retained-run validation disposition, execution disposition, functional comparison disposition, execution-context compatibility disposition, timing disposition, or generated replay evaluation disposition.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-EVAL-004, LLR-REPLAY-EVAL-013*
+
+### LLR-REPLAY-OPS-016: Replay Non-Mutation
+The `replay` operation shall be deterministic over its inputs and shall not mutate the retained run, validation result, execution record, functional comparison result, timing result, target execution profile, execution-context compatibility result, generated replay evaluation inputs, diagnostics, provenance associations, retained functional reference material, or upstream evidence.
+*Traces to: HLR-REPLAY-OPS-002, HLR-REPLAY-EVAL-006*
+
+### LLR-REPLAY-OPS-017: Diff Operation Inputs
+The `diff` operation shall consume exactly two retained runs and any retained-run validation results required to establish that both retained runs are structurally valid before compatible retained-run comparison proceeds.
+*Traces to: HLR-REPLAY-OPS-003, HLR-REPLAY-RUN-002*
+
+### LLR-REPLAY-OPS-018: Diff Validation Prerequisite
+The `diff` operation shall require both retained runs to have validation disposition `valid` before producing retained-run diff disposition `exact` or `diverged`. If either retained run is invalid or cannot be validated as required, the diff disposition shall be `incompatible` with stable validation or association reasons.
+*Traces to: HLR-REPLAY-OPS-003, HLR-REPLAY-RUN-007*
+
+### LLR-REPLAY-OPS-019: Diff Compatibility Checks
+The `diff` operation shall check retained-run format compatibility, replay schema identity and version compatibility, canonical input comparability, modeled-execution dependency binding comparability, retained functional reference material comparability, and functional comparison parameter comparability before deciding `exact` or `diverged`.
+*Traces to: HLR-REPLAY-OPS-003, HLR-REPLAY-SCHEMA-006*
+
+### LLR-REPLAY-OPS-020: Diff Dispositions
+The `diff` operation shall produce exactly one retained-run diff disposition: `exact`, `diverged`, or `incompatible`. `exact` shall mean the two retained runs match under the retained-run diff contract. `diverged` shall mean the two retained runs are compatible for diff but differ in identity-bearing retained-run content. `incompatible` shall mean they cannot be compared under the retained-run diff contract.
+*Traces to: HLR-REPLAY-OPS-003*
+
+### LLR-REPLAY-OPS-021: Diff Evidence and Symmetry
+For disposition `diverged`, the `diff` operation shall report deterministic first-difference evidence. For disposition `incompatible`, it shall report stable incompatibility reasons or a deterministic ordered reason set. Swapping the two retained-run inputs shall not change the disposition; first-difference or incompatibility evidence shall be selected by canonical retained-run content ordering defined by the retained-run format and replay schema as applicable rather than caller input position.
+*Traces to: HLR-REPLAY-OPS-003*
+
+### LLR-REPLAY-OPS-022: Diff Authority Boundary
+The `diff` operation shall not treat either retained run as authoritative and shall not redefine ordinary replay functional comparison of generated execution behavior against a retained functional reference. Diff evidence shall remain separate from replay execution, functional comparison, physical timing evaluation, generated replay evaluation, and replay-trace envelope judgment.
+*Traces to: HLR-REPLAY-OPS-003, HLR-REPLAY-COMP-001*
+
+### LLR-REPLAY-OPS-023: Diff Non-Mutation
+The `diff` operation shall be deterministic over its inputs and shall not mutate either retained run, retained-run validation result, retained functional reference material, modeled-execution dependency binding, functional comparison parameter, provenance association, upstream evidence, execution record, comparison result, timing result, target profile, or generated replay evaluation.
+*Traces to: HLR-REPLAY-OPS-003*
+
+### LLR-REPLAY-ENV-001: Replay-Trace Envelope Inputs
+A replay-trace envelope judgment shall consume the applicable retained-run identity, replay schema identity and version checked from the retained run, a trace or immutable trace reference, trace origin, named deterministic envelope rule identity and version, rule parameters, and rule context. When the trace is a generated functional trace, the inputs shall also include the applicable execution-record identity or stable reference. The judgment shall not independently select the replay schema identity.
+*Traces to: HLR-REPLAY-OPS-004, HLR-REPLAY-TRACE-001*
+
+### LLR-REPLAY-ENV-002: Trace Origin Classification
+Replay-trace envelope input shall identify whether the trace origin is retained functional reference material, generated functional trace from an execution record, or another schema-defined replay trace origin. Trace origin shall be stable result content and shall not be inferred from storage path or diagnostic prose.
+*Traces to: HLR-REPLAY-OPS-004, HLR-REPLAY-TRACE-002*
+
+### LLR-REPLAY-ENV-003: Envelope Association Validation
+A replay-trace envelope judgment shall validate required associations among the mandatory retained-run identity, trace identity or immutable trace reference, trace origin, execution-record identity when the trace is a generated functional trace, replay schema identity and version, rule identity and version, rule parameters, and rule context. Missing or mismatched required associations shall produce judgment disposition `invalid` with stable reasons and shall not be represented only as evidence limitations.
+*Traces to: HLR-REPLAY-OPS-004, HLR-REPLAY-EVAL-004*
+
+### LLR-REPLAY-ENV-004: Envelope Rule Application
+For structurally valid inputs, replay-trace envelope judgment shall apply exactly the named deterministic envelope rule version with the declared rule parameters and context to the trace content or immutable trace reference. Rule identity, rule version, parameters, and context shall be stable machine-readable result content.
+*Traces to: HLR-REPLAY-OPS-004*
+
+### LLR-REPLAY-ENV-005: Envelope Judgment Dispositions
+A replay-trace envelope judgment shall produce exactly one stable judgment disposition: `pass`, `fail`, `inconclusive`, `not_applicable`, or `invalid`. `fail` shall include first violation evidence when applicable. `inconclusive`, `not_applicable`, and `invalid` shall include stable reasons or a deterministic ordered reason set.
+*Traces to: HLR-REPLAY-OPS-004*
+
+### LLR-REPLAY-ENV-006: Envelope Result Content and Identity
+A replay-trace envelope result shall include envelope-result format identity and version, replay schema identity and version, mandatory retained-run identity, trace identity or immutable trace reference, trace origin, execution-record identity when the trace is a generated functional trace, rule identity and version, rule parameters, rule context, judgment disposition, stable reasons or first violation evidence when applicable, and envelope-result identity or stable result reference derived from canonical result content.
+*Traces to: HLR-REPLAY-OPS-004*
+
+### LLR-REPLAY-ENV-007: Replay-Trace Envelope Boundary
+Replay-trace envelope judgment shall not redefine retained-run validation, replay execution, functional comparison, physical timing evaluation, generated replay evaluation, retained-run diff, or upstream source admission. The existing raw ADC witness envelope remains a source-evidence judgment over admitted observations and shall not be treated as a replay-trace envelope.
+*Traces to: HLR-REPLAY-OPS-004, HLR-REPLAY-OPS-005*
+
+### LLR-REPLAY-ENV-008: Envelope Non-Mutation
+Replay-trace envelope judgment shall be deterministic over its inputs and shall not mutate the trace, immutable trace reference, retained run, execution record, comparison result, timing result, target profile, generated replay evaluation, rule parameters, rule context, upstream evidence, or raw ADC source-evidence envelope material.
+*Traces to: HLR-REPLAY-OPS-004, HLR-REPLAY-OPS-005*
+
+## 12. Upstream Saved Input Parsing
 
 ### LLR-REPLAY-PARSE-001: Initial Saved Input Grammar
 Upstream saved-input parsing shall accept only the initial text grammar before producing canonical input: first line `precision-replay-input v1`, second line `schema math-i64f64-v1`, followed by zero or more frame rows.
@@ -431,7 +558,7 @@ Upstream saved-input parsing shall not execute replay frames; execution remains 
 *Traces to: HLR-REPLAY-PARSE-006, HLR-REPLAY-EXEC-001*
 
 
-## 12. Retained Replay Witness Checker
+## 13. Retained Replay Witness Checker
 
 ### LLR-REPLAY-CHECK-001: Retained Replay Artifact Layout
 The retained replay artifact layout shall contain `input.txt`, `expected_witness.txt`, and `expected_result.txt` under `artifacts/replay/math-i64f64-v1/`.
@@ -466,7 +593,7 @@ The checked-in replay checker entrypoint shall report input read failure with ex
 *Traces to: HLR-REPLAY-CHECK-010*
 
 
-## 13. Upstream Raw ADC Admitted Observation Projection
+## 14. Upstream Raw ADC Admitted Observation Projection
 
 ### LLR-REPLAY-PROJ-001: Raw ADC Admission Precondition
 Upstream raw-ADC-derived replay input projection shall require successful raw ADC capture admission before it begins.
@@ -492,12 +619,36 @@ Upstream raw-ADC-derived replay input projection shall preserve `context_id` whe
 The same admitted raw ADC observations and metadata shall produce the same upstream raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
 
-## 14. Target Agreement
+## 15. Target Agreement
 
 ### LLR-REPLAY-TGT-001: Multi-Target Agreement Scope
-Multi-target agreement shall compare target executions of the same retained run only when those executions are comparable under the replay schema. When target-specific claims are involved, each target execution shall have a compatible context result for the applicable target execution profile before it participates in profile-bound multi-target agreement.
+Multi-target agreement shall compare executions of the same retained run only when those executions identify the same retained-run identity, compatible replay schema identity and version, and valid execution-record associations. When target-specific claims are involved, each execution shall identify the applicable target-profile identity and shall have a compatible execution-context result for that exact target profile before participating in profile-bound multi-target agreement.
 *Traces to: HLR-REPLAY-TGT-001, HLR-REPLAY-TPROF-005*
 
 ### LLR-REPLAY-TGT-002: Target Metadata Equality Boundary
-Target-specific diagnostic metadata, target execution profile metadata, and context compatibility results shall not participate in replay equality unless the replay schema makes that information observable. Multi-target agreement shall not validate target profiles, shall not evaluate physical timing pass or fail, and shall not redefine retained-run validation, execution disposition, or functional comparison.
+Target-specific diagnostic metadata, target execution profile metadata, and context compatibility results shall not participate in replay equality unless the replay schema makes that information observable. Multi-target agreement shall not validate target profiles, shall not evaluate physical timing pass or fail unless timing agreement is explicitly required, and shall not redefine retained-run validation, execution disposition, functional comparison, target-profile compatibility, timing evaluation, or generated replay evaluation.
 *Traces to: HLR-REPLAY-TGT-002, HLR-REPLAY-TPROF-006*
+
+### LLR-REPLAY-TGT-003: Agreement Inputs
+Multi-target agreement shall consume only two or more execution records for the same retained run, their functional comparison results, replay schema identity and version, applicable target-profile identities when profile-bound claims are involved, execution-context compatibility results required for those profiles, and timing results only when timing agreement is explicitly required.
+*Traces to: HLR-REPLAY-TGT-001, HLR-REPLAY-TGT-002*
+
+### LLR-REPLAY-TGT-004: Agreement Compatibility Checks
+Multi-target agreement shall check retained-run identity equality, compatible replay schema identity and version, execution-record association integrity, comparison-result association integrity, applicable target-profile identity association, compatible execution-context result association for profile-bound claims, and timing-result association only when timing agreement is explicitly required. Missing or mismatched required associations shall produce agreement disposition `incompatible` with stable reasons.
+*Traces to: HLR-REPLAY-TGT-001, HLR-REPLAY-TGT-002*
+
+### LLR-REPLAY-TGT-005: Functional and Timing Agreement Scope
+For compatible inputs, multi-target agreement shall compare schema-defined functional trace, execution disposition, terminal outcome when applicable, functional comparison disposition, and first-divergence evidence when applicable. Timing disposition and timing-result evidence shall participate only when the replay schema or requested claim explicitly requires timing agreement.
+*Traces to: HLR-REPLAY-TGT-001*
+
+### LLR-REPLAY-TGT-006: Agreement Dispositions and Reasons
+A multi-target agreement result shall produce exactly one disposition: `agree`, `mismatch`, or `incompatible`. `agree` shall mean all compatible participating executions agree within the applicable functional and explicit timing scope. `mismatch` shall mean compatible inputs differ within that scope. `incompatible` shall mean the inputs cannot be compared for multi-target agreement. Mismatch and incompatible results shall include stable reasons or deterministic ordered reason sets, with first mismatch evidence when applicable.
+*Traces to: HLR-REPLAY-TGT-001, HLR-REPLAY-TGT-002*
+
+### LLR-REPLAY-TGT-007: Agreement Result Content and Identity
+A multi-target agreement result shall include agreement-result format identity and version, retained-run identity, replay schema identity and version, participating execution-record identities, comparison-result identities or stable references, applicable target-profile identities, required compatibility-result references, timing-result identities or stable references when timing agreement applies, agreement disposition, stable mismatch or incompatibility reasons when applicable, first mismatch evidence when applicable, and agreement-result identity or stable result reference derived from canonical result content.
+*Traces to: HLR-REPLAY-TGT-001, HLR-REPLAY-TGT-002*
+
+### LLR-REPLAY-TGT-008: Deterministic Ordering and Non-Mutation
+Multi-target agreement shall treat input ordering deterministically: reordering the same participating execution-record, target-profile, compatibility-result, comparison-result, and timing-result inputs shall not change the agreement disposition or result identity. Multi-target agreement shall not mutate execution records, target profiles, compatibility results, comparison results, timing results, retained runs, retained-run validation results, diagnostics, or upstream evidence.
+*Traces to: HLR-REPLAY-TGT-002*

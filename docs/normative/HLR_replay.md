@@ -298,13 +298,13 @@ The checked-in replay checker entrypoint shall report invalid invocation, input 
 The `record` operation shall create a retained run from canonical input produced through a route permitted by the applicable upstream canonicalization contract for the declared replay schema.
 
 ### HLR-REPLAY-OPS-002: Replay Operation
-The `replay` operation shall validate a retained run, execute it, compare generated behavior with its reference, perform physical timing evaluation when required, and produce a replay evaluation.
+The `replay` operation shall validate a retained run, stop before execution when validation is invalid, execute only when validation is valid, produce an execution record, compare generated behavior with the retained functional reference, perform execution-context compatibility validation and physical timing evaluation when required by the schema or requested claim, and produce a replay evaluation.
 
 ### HLR-REPLAY-OPS-003: Diff Operation
 The `diff` operation shall compare two retained runs without treating either retained run as authoritative; swapping inputs shall not change `exact`, `diverged`, or `incompatible`.
 
 ### HLR-REPLAY-OPS-004: Replay Trace Envelope Operation
-The `envelope` operation shall apply a named deterministic rule to a trace and produce a judgment associated with the retained-run identity, trace origin, context, and rule.
+The `envelope` operation shall apply a named deterministic rule to a trace and produce a judgment associated with the retained-run identity, trace origin, context, and rule. Replay-trace envelope judgment categories shall be stable and shall distinguish passing evidence, failing evidence, inconclusive evidence, non-applicable rules, and structural invalidity. Required association failures shall be structural invalidity and shall not be represented only as evidence limitations.
 
 ### HLR-REPLAY-OPS-005: Raw ADC Source-Evidence Envelope Boundary
 The existing raw ADC witness envelope shall remain a source-evidence judgment over admitted observations and shall not be redefined as a replay-trace envelope without an explicit requirement.
@@ -358,7 +358,7 @@ Physical timing evaluation shall be deterministic over its inputs and shall not 
 ## 12. Target Agreement
 
 ### HLR-REPLAY-TGT-001: Multi-Target Replay Agreement
-For a replay schema supported on multiple targets, the same retained run shall produce the same schema-defined trace, execution outcome, comparison disposition, and first divergence across target executions that are comparable under the schema. When target-specific claims are involved, each target execution shall have a compatible context result for its applicable target execution profile before participating in profile-bound multi-target agreement.
+For a replay schema supported on multiple targets, multi-target agreement shall compare executions of the same retained run with compatible replay schema identity and version, valid execution-record associations, applicable target-profile identities when profile-bound claims are involved, and compatible execution-context results when those profiles are required. Multi-target agreement shall compare schema-defined functional trace, execution outcome, comparison disposition, and first-divergence evidence across comparable target executions. Timing shall participate in multi-target agreement only when explicitly required by the schema or requested claim.
 
 ### HLR-REPLAY-TGT-002: Target Diagnostic Metadata Boundary
-Target-specific diagnostic metadata, target execution profile metadata, and execution-context compatibility results may differ and shall not participate in replay equality unless the replay schema makes that information observable. Multi-target agreement shall not redefine target-profile validation, retained-run validation, execution disposition, functional comparison, or timing-result evaluation.
+Target-specific diagnostic metadata, target execution profile metadata, and execution-context compatibility results may differ and shall not participate in replay equality unless the replay schema makes that information observable. Multi-target agreement shall produce stable agreement dispositions, stable mismatch or incompatibility reasons when applicable, stable result content and identity, deterministic treatment of input ordering, and deterministic non-mutation of its inputs. Multi-target agreement shall not redefine retained-run validity, execution disposition, functional comparison, physical timing evaluation, target-profile compatibility, or generated replay evaluation.
