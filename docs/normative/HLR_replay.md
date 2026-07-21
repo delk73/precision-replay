@@ -6,7 +6,7 @@
 The common Replay system shall begin with canonical input for a declared replay schema and shall define the retained-run, execution, trace, comparison, evaluation, and operation contracts that consume that canonical input.
 
 ### HLR-REPLAY-SYS-002: Non-Universal Input Representations
-The common Replay system shall not define math replay frames, saved-input text, raw ADC observations, raw ADC admission, or raw-ADC-derived projection as universal replay input. Those paths may produce canonical input before common Replay begins when permitted by the applicable upstream canonicalization contract for the declared replay schema.
+The common Replay system shall not treat math replay frames, saved-input text, raw ADC observations, raw ADC admission, or raw ADC-derived projection as universal replay input. Those paths may produce canonical input only when permitted by the upstream canonicalization contract for the declared replay schema.
 
 ### HLR-REPLAY-SYS-003: Retained-Run Format Ownership
 The retained-run format shall own the common replay run structure shared across replay schemas without owning schema-specific canonical input meaning, upstream canonicalization or admission behavior, execution behavior, trace semantics, or comparison rules.
