@@ -210,8 +210,9 @@ The generated functional trace shall record ordered observable execution, the ex
 ### HLR-REPLAY-TRACE-003: Deterministic Prefix Trace
 Rejected and incomplete execution may retain a deterministic generated trace prefix only when the replay schema defines that behavior.
 
-### HLR-REPLAY-TRACE-004: Terminal Outcome Non-Trace Boundary
-Terminal outcome may participate in functional comparison under schema rules, but shall not become functional trace behavior unless the schema explicitly defines it that way.
+### HLR-REPLAY-TRACE-004: Terminal Outcome and Trace Separation
+Terminal outcome shall remain separate from the functional trace. Functional comparison may evaluate both independently. A replay schema may define trace events associated with terminal behavior, but those events shall not alter the terminal outcome from execution of the retained run.
+
 
 
 ## 7. Comparison
