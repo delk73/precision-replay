@@ -16,6 +16,9 @@ The memory layout of the $I64F64$ structure must be stable, packed, and strictly
 ### HLR-MATH-OPS-001: Overflow and Underflow Containment
 Any arithmetic operation (addition, subtraction, multiplication, or division) that exceeds the maximum or minimum bounds representable by the $I64F64$ structure shall trigger an immediate runtime abort (`panic = "abort"`), preventing corrupted data propagation. 
 
+### HLR-MATH-OPS-004: Representable-Result Closure
+Each public `I64F64` arithmetic operation shall produce its specified result for every valid operand combination whose final raw result is representable within the signed 128-bit `I64F64` range after the operation’s required scaling, truncation, or rounding. An operation shall not reject such a result because of an implementation-specific intermediate-width limitation.
+
 ### HLR-MATH-OPS-002: Intermediate Precision Scaling
 Multiplication operations shall maintain full 256-bit precision during intermediate calculation stages before scaling down to the final 128-bit layout. This ensures that fractional precision is not truncated before the final alignment step.
 
