@@ -35,3 +35,7 @@ Division of two `I64F64` values ($A \div B$) must execute via the following dete
 ### LLR-REPLAY-MATH-OPS-004: Convergent Integer Rounding
 Accumulator-to-integer conversion shall eliminate directional bias by rounding to nearest and breaking exact half-scale ties toward the even integral value.
 *Traces to: HLR-MATH-REP-002*
+
+### LLR-REPLAY-MATH-OPS-005: Signed Raw Result Range
+After the operation-specific scaling, truncation, or rounding rules have been applied, a public `I64F64` arithmetic operation shall treat every resulting final raw integer from `i128::MIN` through `i128::MAX`, inclusive, as representable. Both signed endpoints shall be valid final raw operation results. A resulting final raw integer below `i128::MIN` or above `i128::MAX` shall be rejected as unrepresentable. An operation shall not exclude `i128::MIN` because an implementation technique cannot form its positive absolute value, and implementation-specific intermediate-width limitations shall not narrow this final raw result range. This requirement defines only the final raw result representability boundary; operand validity and operation-specific scaling, truncation, and rounding behavior remain owned by their respective requirements.
+*Traces to: HLR-MATH-OPS-004*
