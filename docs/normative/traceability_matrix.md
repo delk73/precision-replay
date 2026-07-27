@@ -1,6 +1,8 @@
 # Requirements Traceability Matrix
 
-This document records the current traceability links and verification status between active behavioral and system requirements and their implementation blocks. It distinguishes active proofs, implementation-local tests, runtime traceability, and pending proof obligations rather than asserting that every traceability row is fully verified.
+This document records selected traceability links and verification status between active behavioral and system requirements and their implementation blocks. It distinguishes active proofs, implementation-local tests, runtime traceability, and pending proof obligations rather than asserting that every traceability row is fully verified.
+
+Requirement documents are authoritative for direct HLR-to-LLR decomposition links. This matrix is an operational view of selected implementation, verification, evidence, and status relationships, not a complete HLR-to-LLR decomposition map. Omission of a direct HLR-to-LLR link from this matrix does not negate a link recorded in the requirement documents.
 
 ## Traceability Row-Class Policy
 
