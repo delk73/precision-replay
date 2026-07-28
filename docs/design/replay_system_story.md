@@ -4,15 +4,23 @@ This document is explanatory design context. Normative replay requirements remai
 
 Replay begins with canonical input and a declared replay schema. The schema defines what the input means, how replay executes it, what functional trace is observable, how execution can end, and how later executions are compared.
 
-The record operation creates an immutable retained run. The retained run contains the canonical input, schema-declared execution dependencies, retained functional reference material, and functional comparison parameters. It binds the functional reference used for later comparison. Physical timing evidence and target-specific execution context are not part of that functional reference.
+The record operation creates an immutable retained run. The retained run contains the canonical input, schema-declared execution dependencies (including the immutable Initial State Seed $S_0$ required to initialize state at cycle tick $t_0$), retained functional reference material, and functional comparison parameters. It binds the functional reference used for later comparison. Physical timing evidence and target-specific execution context are not part of that functional reference.
 
-Replay validates the retained run before execution. If the retained run is not structurally usable, execution does not start. That failure is a validation failure, not an execution rejection.
+Replay validates the retained run before execution. Structural usability requires format identity compliance, non-empty canonical input, schema version compatibility, and a valid bound Initial State Seed $S_0$. If the retained run is not structurally usable, execution does not start. That failure is a validation failure, a pre-execution gate event, and not an execution rejection.
 
-Replay execution of a valid retained run produces one execution record for one execution occurrence. The execution record contains the generated functional trace, execution disposition, terminal outcome when present, execution-context facts, any physical timing observations, and any applicable stable diagnostic references. Execution does not mutate the retained run.
+Replay execution of a valid retained run produces one execution record for one execution occurrence. Replay execution evaluates sequentially over discrete, monotonically increasing cycle ticks ($t_k$), completely isolated from host wall-clock time. The execution record contains the generated functional trace, execution disposition (`accepted`, `rejected`, or `incomplete`), terminal outcome when present, execution-context facts, any physical timing observations, and any applicable stable diagnostic references. 
+- Execution disposition is `accepted` upon reaching a schema-defined terminal state.
+- Execution disposition is `rejected` when encountering a deterministic rule violation or illegal state transition.
+- Execution disposition is `incomplete` if execution is truncated, aborted, or interrupted prior to termination.
+Execution does not mutate the retained run.
 
-Functional comparison compares the execution record’s generated functional behavior with the retained run’s functional reference. Comparison can be exact, diverged, or incompatible. It reports functional mismatch evidence without rewriting the execution disposition.
+Functional comparison compares the execution record’s generated functional behavior with the retained run’s functional reference:
+- Comparison is `exact` when generated state vectors match reference state vectors at all cycle ticks ($t_k$).
+- Comparison is `diverged` when traces are schema-compatible but state vectors differ at one or more cycle ticks ($t_k$).
+- Comparison is `incompatible` when traces originate from non-comparable schemas or structural formats.
+Comparison reports functional mismatch evidence without rewriting the execution disposition.
 
-Physical timing evaluation applies only when the schema or requested claim requires timing evidence. It uses physical timing observations from the execution record and the applicable target execution profile, after any required execution-context compatibility checks. Timing can be pass, fail, or insufficient, and remains separate from functional comparison.
+Physical timing evaluation applies only when the declared Replay Schema explicitly requires physical timing evidence. It uses physical timing observations from the execution record and the applicable target execution profile, after required execution-context compatibility checks. If execution-context facts are incompatible with the target profile, physical timing evaluation yields an `insufficient` disposition. Physical timing results (`pass`, `fail`, or `insufficient`) remain completely separate from functional comparison.
 
 Replay evaluation packages the claim result. It associates the retained run, execution record, functional comparison result, optional timing result, required target-profile context, evidence limitations, and claim boundaries. Evaluation can be supported, not_supported, insufficient, or invalid. Invalid applies only when a required input or association is structurally invalid.
 

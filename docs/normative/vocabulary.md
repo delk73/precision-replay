@@ -62,3 +62,28 @@ A deterministic cryptographic or algebraic digest computed over the State Vector
 ### Desynchronization Fault (Desync)
 A verification failure triggered when the Host-reconstructed state hash does not match the Target-generated state hash ($H_{\text{host}}(S_k) \neq H_{\text{target}}(S_k)$).
 
+---
+
+## 5. Replay Artifacts & Schema Boundaries
+
+### Canonical Input
+The normalized replay input artifact that serves as the authoritative source data for replay retention, validation, and execution. Canonical Input is the only input form admitted into a retained replay record.
+
+### Replay Schema
+The declared schema that defines replay semantics, including input interpretation, execution rules, observable functional trace shape, terminal conditions, comparison rules, and any required evidence constraints.
+
+### Retained Run
+The immutable retained replay record that binds Canonical Input, Replay Schema, and schema-declared execution dependencies for later execution and comparison. A Retained Run is preserved without mutation after record creation.
+
+### Execution Record
+The immutable record produced by one replay execution occurrence of a Retained Run. An Execution Record contains the generated functional trace, execution disposition, terminal outcome when present, execution-context facts, any physical timing observations, and any applicable stable diagnostic references.
+
+### Stable Diagnostic Reference
+A stable, schema-bounded diagnostic artifact reference that is attached to an Execution Record to preserve externally reviewable diagnostic evidence without altering replay semantics or disposition values.
+
+### Execution Disposition
+The replay execution outcome label assigned to an Execution Record after execution. Execution Disposition shall be one of `accepted`, `rejected`, or `incomplete`: `accepted` denotes completion at a schema-defined terminal state, `rejected` denotes a deterministic rule violation or illegal state transition, and `incomplete` denotes truncation, abort, or interruption before termination.
+
+### Comparison Disposition
+The functional comparison outcome label assigned when an Execution Record is compared against the retained functional reference of a Retained Run. Comparison Disposition shall be one of `exact`, `diverged`, or `incompatible`: `exact` denotes matching generated and reference state vectors at all cycle ticks, `diverged` denotes schema-compatible traces whose state vectors differ at one or more cycle ticks, and `incompatible` denotes traces originating from non-comparable schemas or structural formats.
+
