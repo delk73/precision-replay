@@ -1,19 +1,24 @@
-# Skill Specification: derive-llr
+---
+name: scaffold-llr
+description: Transforms High-Level Requirements into implementation-constraining Low-Level Requirement skeletons.
+---
+
+# Skill Specification: scaffold-llr
 
 ## Input Contract
-- Authoritative high-level requirements file: `docs/normative/HLR_replay.md`.
-- Authoritative vocabulary file: `docs/normative/vocabulary.md`.
+- Target High-Level Requirements document (e.g., `docs/normative/HLR_replay.md`).
+- Target Vocabulary document (e.g., `docs/normative/vocabulary.md`).
 
 ## Execution Protocol
-1. Read and parse all HLR identifiers in `docs/normative/HLR_replay.md`.
-2. Enforce a strict 1:1 derivation mapping from `HLR-RPL-001` through `HLR-RPL-036` to `LLR-RPL-001` through `LLR-RPL-036`.
-3. For each derived LLR, specify implementation-constraining low-level obligations for:
-   - deterministic data structures (field ordering, width/representation assumptions, serialization boundaries when relevant),
-   - fixed-point numeric bounds and rounding semantics where applicable,
-   - explicit state transition functions and pre/post-conditions,
-   - explicit error condition labels and deterministic handling paths.
-4. Use normative language (`shall`) and preserve canonical terminology from `docs/normative/vocabulary.md`.
-5. Do not alter, renumber, or reinterpret existing HLR IDs; only derive corresponding low-level constraints.
+1. Read and parse all High-Level Requirement obligations from the input HLR document.
+2. Derive one or more Low-Level Requirements (LLRs) for each HLR to capture full implementation constraints.
+3. For each derived LLR, specify explicit low-level obligations covering:
+   - Deterministic data structure layout (field ordering, bit-width boundaries, representation assumptions).
+   - Fixed-point arithmetic precision, numerical scale/bounds, and rounding semantics.
+   - Deterministic state transition functions, pre-conditions, post-conditions, and active invariants.
+   - Explicit error labels, error codes, and deterministic handling paths.
+4. Enforce normative language (`shall`) bound strictly to canonical terms defined in the target vocabulary document.
+5. Group requirements logically under parent HLR identifiers, maintaining upstream parent traceability.
 
 ## Output Artifact Contract
-MUST write a complete low-level requirements baseline to `docs/design/LLR_replay.md` with IDs `LLR-RPL-001` through `LLR-RPL-036`, preserving one-to-one traceability back to `HLR-RPL-001` through `HLR-RPL-036`.
+MUST return proposed candidate Low-Level Requirements strictly in chat memory for human review prior to disk write to the target LLR document path (e.g., `docs/normative/LLR_replay.md`).
