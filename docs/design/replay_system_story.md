@@ -1,3 +1,13 @@
+---
+pipeline_state:
+  active_phase: "complete"
+  gates:
+    scope_decomposition_approved: true
+    lexicon_alignment_approved: true
+    hlr_baseline_approved: true
+    traceability_matrix_approved: true
+---
+
 # Replay System Story
 
 This document is explanatory design context. Normative replay requirements remain in `docs/normative/HLR_replay.md`, `docs/design/LLR_replay.md`, and `docs/normative/traceability_matrix.md`.
@@ -13,6 +23,12 @@ Replay execution of a valid retained run produces one execution record for one e
 - Execution disposition is `rejected` when encountering a deterministic rule violation or illegal state transition.
 - Execution disposition is `incomplete` if execution is truncated, aborted, or interrupted prior to termination.
 Execution does not mutate the retained run.
+
+## Execution Trace Integrity and Tamper Detection
+
+During cycle-tick execution, the Replay system computes incremental, deterministic digest chains across all observable state vectors from $t_0$ through $t_k$. If an execution record exhibits structural inconsistency, broken cryptographic hash continuity, or stream truncation during functional comparison, Replay assigns a specific structural invalidity fault to the comparison stage rather than classifying the execution trace as diverged. Replay guarantees that trace integrity verification depends strictly on deterministic state-vector math and does not rely on external cryptographic key availability, public key infrastructure, or network-bound attestation services.
+
+## Comparison and Evaluation Semantics
 
 Functional comparison compares the execution record’s generated functional behavior with the retained run’s functional reference:
 - Comparison is `exact` when generated state vectors match reference state vectors at all cycle ticks ($t_k$).

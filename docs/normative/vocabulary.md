@@ -87,3 +87,36 @@ The replay execution outcome label assigned to an Execution Record after executi
 ### Comparison Disposition
 The functional comparison outcome label assigned when an Execution Record is compared against the retained functional reference of a Retained Run. Comparison Disposition shall be one of `exact`, `diverged`, or `incompatible`: `exact` denotes matching generated and reference state vectors at all cycle ticks, `diverged` denotes schema-compatible traces whose state vectors differ at one or more cycle ticks, and `incompatible` denotes traces originating from non-comparable schemas or structural formats.
 
+### Structural Usability Validation
+The pre-execution validation decision over a Retained Run confirming format identity compliance, non-empty Canonical Input, Replay Schema version compatibility, and valid bound Initial State Seed ($S_0$). Failure shall prevent execution start and shall be classified as validation failure, not execution rejection.
+
+### Pre-Execution Gate Event
+A validation-stage stop condition raised before replay execution begins. A Pre-Execution Gate Event records validation failure causality and shall not produce an Execution Disposition.
+
+### Trace Integrity Verification
+Deterministic verification over execution trace structure and digest-chain continuity across cycle ticks. Trace Integrity Verification is used to detect structural inconsistency, broken hash continuity, or stream truncation during functional comparison.
+
+### Digest Chain Continuity
+The invariant that incremental deterministic digests over observable State Vectors from $t_0$ through $t_k$ form an unbroken sequence under schema-defined chaining rules.
+
+### Structural Invalidity Fault
+A comparison-stage fault classification used when an execution trace is structurally invalid (including malformed structure, digest-chain discontinuity, or truncation). A Structural Invalidity Fault shall not be classified as functional divergence.
+
+### Execution-Context Compatibility Check
+The schema/profile-bounded compatibility test determining whether execution-context facts satisfy prerequisites required to perform physical timing evaluation.
+
+### Target Execution Profile
+The declared target-specific timing and evidence constraint set used to interpret physical timing observations during timing evaluation.
+
+### Physical Timing Evaluation Disposition
+The timing-only outcome label produced by physical timing evaluation. Physical Timing Evaluation Disposition shall be one of `pass`, `fail`, or `insufficient` and shall remain separate from Execution Disposition and Comparison Disposition.
+
+### Replay Evaluation Disposition
+The final claim-packaging outcome label. Replay Evaluation Disposition shall be one of `supported`, `not_supported`, `insufficient`, or `invalid`, where `invalid` applies only when a required input or association is structurally invalid.
+
+### Evidence Limitation
+An explicit declared boundary condition that constrains the scope, strength, or applicability of a replay claim without altering underlying validation, execution, comparison, or timing outcomes.
+
+### Claim Boundary
+The explicit scope statement defining what a replay evaluation result does and does not assert.
+
