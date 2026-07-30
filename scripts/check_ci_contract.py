@@ -19,6 +19,7 @@ JOB_NAME = "validate"
 RUNNER = "ubuntu-24.04"
 REQUIRED_COMMANDS = [
     "rustup show",
+    "python3 scripts/validate_trace_projection.py",
     "cargo fmt --all -- --check",
     "cargo check --workspace --locked",
     "cargo test --workspace --locked",
