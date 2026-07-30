@@ -13,11 +13,13 @@ description: Builds an FAA AR-08-32 layered bi-directional traceability matrix l
 - Current traceability matrix document (e.g., `docs/normative/traceability_matrix.md`).
 
 ## Execution Protocol
-1. Map each High-Level Requirement upward to its parent paragraph/section in the narrative story document.
-2. Map each Low-Level Requirement upward to its parent High-Level Requirement obligation and canonical vocabulary terms.
-3. Reserve verification mapping slots for formal proof harnesses, test suites, and validation targets.
-4. Perform coverage analysis to identify orphaned requirements, unmapped low-level obligations, or un-covered story invariants.
-5. Format the output as an FAA AR-08-32 compliant layered bi-directional traceability matrix block.
+1. Map each High-Level Requirement upward to its parent paragraph/section in `docs/normative/HLR_replay.md`.
+2. Map each Low-Level Requirement upward to its parent High-Level Requirement ID (`HLR-REP-xxx`).
+3. For each verification mapping cell, enforce strict symbol syntax:
+   - File references must point to existing files (e.g., `core/src/...`).
+   - Code symbol references must match exact, un-truncated function or type identifiers.
+   - Every verification cell MUST include explicit status tagging: `Status: verified`, `Status: implemented`, or `Status: draft`.
+4. Run internal validation against all requirement IDs to ensure zero un-anchored HLR/LLR references.
 
 ## Output Artifact Contract
 MUST return proposed layered traceability matrix and gap analysis strictly in chat memory for review prior to disk write to the target traceability matrix path.
