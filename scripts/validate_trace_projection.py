@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the archived replay traceability matrix and emit a JSON projection."""
+"""Validate the normative replay traceability matrix and emit a JSON projection."""
 
 from __future__ import annotations
 
@@ -12,10 +12,10 @@ from pathlib import Path
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_HLR = REPO_ROOT / "docs" / "archive" / "wip_requirements_2026" / "HLR_replay.md"
-DEFAULT_LLR = REPO_ROOT / "docs" / "archive" / "wip_requirements_2026" / "LLR_replay.md"
+DEFAULT_HLR = REPO_ROOT / "docs" / "normative" / "HLR_replay.md"
+DEFAULT_LLR = REPO_ROOT / "docs" / "normative" / "LLR_replay.md"
 DEFAULT_MATRIX = (
-    REPO_ROOT / "docs" / "archive" / "wip_requirements_2026" / "traceability_matrix.md"
+    REPO_ROOT / "docs" / "normative" / "traceability_matrix.md"
 )
 DEFAULT_OUTPUT = REPO_ROOT / "trace_projection.json"
 
