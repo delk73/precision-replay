@@ -1,12 +1,12 @@
 ---
-pipeline_state:
-  active_phase: "logical_decomposition"
-  gates:
-    scope_decomposition_approved: false
-    lexicon_alignment_approved: false
-    hlr_baseline_approved: false
-    llr_baseline_approved: false
-    traceability_matrix_approved: false
+active_phase: "domain_boundary_analysis"
+gates:
+  narrative_ingested: true
+  domain_boundary_approved: false
+  lexicon_alignment_approved: false
+  hlr_baseline_approved: false
+  llr_baseline_approved: false
+  traceability_matrix_approved: false
 ---
 
 # Replay System Story
