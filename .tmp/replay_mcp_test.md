@@ -1,6 +1,7 @@
 ---
 title: Replay System Story
 active_phase: "domain_boundary_analysis"
+staged_candidate: null
 gates:
   narrative_ingested: true
   domain_boundary_approved: false
