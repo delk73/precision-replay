@@ -34,7 +34,7 @@ The surviving candidate claim is:
 
 > Deterministic re-execution can establish functional agreement for a canonical replay input under declared execution semantics. It cannot, by itself, establish equivalence of the physical acquisitions that projected to that input.
 
-R-LAM does not address this projection-collision case. This limited comparison does not establish that the candidate claim is new.
+The reviewed R-LAM sources do not address projection collisions between distinct physical source records.
 
 ## Project Disposition
 
