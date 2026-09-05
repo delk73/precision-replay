@@ -8,7 +8,7 @@ Only the R-LAM paper and implementation listed below were directly reviewed duri
 
 ## R-LAM Comparison
 
-R-LAM is contemporaneous neighboring work. It overlaps with Precision Replay in structured actions, deterministic execution policies, execution traces, recorded failures, retained evidence, and controlled workflow branching. These broad capabilities do not distinguish the projects by themselves.
+R-LAM is contemporaneous neighboring work. It overlaps with Precision Replay in structured actions, deterministic execution policies, execution traces, recorded failures, retained action results, and controlled workflow branching.
 
 The central operational difference is:
 
@@ -30,7 +30,7 @@ Precision Replay can retain `S1` and `S2` as distinct source records, including 
 
 Results produced by re-executing `C` can be compared across executions or targets. Because those executions receive only `C`, their results cannot identify which source record produced `C`, recover differences discarded by `P`, or establish that the two physical acquisitions were equivalent.
 
-The surviving candidate claim is:
+The candidate claim examined here is:
 
 > Deterministic re-execution can establish functional agreement for a canonical replay input under declared execution semantics. It cannot, by itself, establish equivalence of the physical acquisitions that projected to that input.
 
@@ -38,7 +38,7 @@ The reviewed R-LAM sources do not address projection collisions between distinct
 
 ## Project Disposition
 
-Existing Precision Replay and precision-signal work provides substantial implementation and evidence foundations, including physical-signal acquisition, retained raw-ADC evidence, STM32/DRV425 work, deterministic fixed-point execution, host and embedded execution paths, functional comparison, and evidence packaging.
+Existing work in Precision Replay and precision-signal provides substantial implementation and evidence foundations, including physical-signal acquisition, retained raw-ADC evidence, STM32/DRV425 work, deterministic fixed-point execution, host and embedded execution paths, functional comparison, and evidence packaging.
 
 The broader work should proceed in a fresh `claim-preserving-reduction` project, beginning with requirements developed through `requirements-model-workflow-mcp`.
 
