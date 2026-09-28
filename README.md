@@ -48,13 +48,13 @@ Public replay is the grammar. Hardened replay is a private operational profile. 
 ```text
 .
 |-- .github/
-|   `-- workflows/       # base CI validation workflow
+|   `-- workflows/        # base CI validation workflow
 |-- .githooks/            # repository-local git hooks
-|-- core/                 # no-std replay math crate
+|-- core/                 # no-std replay math crate (precision-replay-core)
 |-- verification/         # Kani proof and verification crate
 |-- bsp/
-|   |-- pru/              # PRU board-support boundary
-|   `-- stm32/            # STM32 board-support boundary
+|   |-- pru/              # PRU board-support boundary (bsp-pru)
+|   `-- stm32/            # STM32 board-support boundary (bsp-stm32)
 |-- runners/
 |   |-- pru-runner/       # PRU runner binary
 |   `-- stm32-runner/     # STM32 runner binary
@@ -64,6 +64,34 @@ Public replay is the grammar. Hardened replay is a private operational profile. 
 |-- Cargo.toml
 |-- Makefile
 `-- rust-toolchain.toml
+```
+
+## Dependency Architecture
+The workspace enforces a strict downward dependency DAG. precision-replay-core serves as the root #![no_std] substrate, consumed by target BSPs, execution runners, and verification harnesses:
+```mermaid
+graph TD
+    %% Execution Runners
+    stm32-runner[runners/stm32-runner]
+    pru-runner[runners/pru-runner]
+
+    %% Hardware BSP Layer
+    bsp-stm32[bsp/stm32]
+    bsp-pru[bsp/pru]
+
+    %% Verification & Core Substrate
+    verification[verification]
+    precision-replay-core[core]
+
+    %% Dependencies
+    stm32-runner --> bsp-stm32
+    stm32-runner --> precision-replay-core
+    pru-runner --> bsp-pru
+    pru-runner --> precision-replay-core
+
+    bsp-stm32 --> precision-replay-core
+    bsp-pru --> precision-replay-core
+
+    verification --> precision-replay-core
 ```
 
 ## Current Validation Commands
