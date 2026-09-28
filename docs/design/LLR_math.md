@@ -28,10 +28,34 @@ Multiplication of two `I64F64` values ($A \times B$) must execute via the follow
 Division of two `I64F64` values ($A \div B$) must execute via the following deterministic sequence:
 1. The denominator $B$ must be checked against zero. If $B == 0$, execution shall abort immediately.
 2. The numerator $A$ must be arithmetically left-shifted by 64 bits before the division occurs to preserve the fractional resolution of the quotient.
-3. The shift operation must be guarded; if left-shifting $A$ would overflow a signed 128-bit boundary, the operation must abort.
+3. The shift operation must be guarded using the signed numerator boundary: if $A \ge 2^{64}$ or $A \le -2^{64}$, the numerator is outside the permitted shift range and the operation must return a fallible `ArithmeticError` or abort before performing the left shift, preventing signed integer overflow.
 4. The division must use checked integer division primitives. Any division overflow (e.g., `MIN_VALUE / -1`) shall trigger an immediate panic abort.
 *Traces to: HLR-MATH-OPS-001, HLR-MATH-OPS-003*
 
 ### LLR-REPLAY-MATH-OPS-004: Convergent Integer Rounding
 Accumulator-to-integer conversion shall eliminate directional bias by rounding to nearest and breaking exact half-scale ties toward the even integral value.
 *Traces to: HLR-MATH-REP-002*
+
+## 3. CORDIC Trigonometric Requirements (LLR-REPLAY-MATH-CORDIC)
+
+### LLR-REPLAY-MATH-CORDIC-001: Quadrant Reduction
+CORDIC trigonometric inputs shall be reduced and mapped into Quadrant I before iteration. After the iteration completes, the implementation shall restore the result to the full $[-\pi, \pi]$ range using the recorded quadrant mapping.
+*Traces to: HLR-MATH-CORDIC-001*
+
+### LLR-REPLAY-MATH-CORDIC-002: Fixed Iteration Depth and Lookup Table
+CORDIC iteration shall execute exactly 64 iterations in Q64.64 fixed-point representation using a static lookup table of arctangent angles. The implementation shall not perform floating-point conversions.
+*Traces to: HLR-MATH-CORDIC-002*
+
+### LLR-REPLAY-MATH-CORDIC-003: Vectoring Gain Scaling
+After the CORDIC loop, vectoring results shall be scaled using fixed-point arithmetic by the reciprocal vectoring gain $K_n^{-1} \approx 0.6072529350088812561694$.
+*Traces to: HLR-MATH-CORDIC-003*
+
+## 4. S3 Unit Quaternion & Hopf Geometry Requirements (LLR-REPLAY-MATH-S3)
+
+### LLR-REPLAY-MATH-S3-001: Unit Quaternion Memory Layout
+A unit quaternion shall be represented as a 64-byte struct containing four `I64F64` values and annotated with `#[repr(C)]` to guarantee its memory layout.
+*Traces to: HLR-MATH-S3-001*
+
+### LLR-REPLAY-MATH-S3-002: Deterministic Hopf Projection
+The Hopf projection ($\eta: S^3 \to (S^2, S^1)$) shall deterministically map each $S^3$ element to $S^2$ base and $S^1$ fiber coordinates using fixed-point multiplication and CORDIC `atan2`, without floating-point operations.
+*Traces to: HLR-MATH-S3-002*
