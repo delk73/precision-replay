@@ -7,7 +7,7 @@ use core::ops::{Add, Div, Mul, Sub};
 pub struct I64F64(pub i128);
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub(crate) enum ArithmeticError {
+pub enum ArithmeticError {
     AdditionOverflow,
     SubtractionOverflow,
     CrossTermOverflow,
@@ -16,6 +16,7 @@ pub(crate) enum ArithmeticError {
     CapacityBoundOverflow,
     DivisionByZero,
     DivisionNumeratorShiftOverflow,
+    Overflow,
     IntegerDivisionOverflow,
 }
 
@@ -43,6 +44,9 @@ fn panic_arithmetic<T>(error: ArithmeticError) -> T {
         }
         ArithmeticError::DivisionByZero => panic!("CRITICAL MATH EXCEPTION: Division By Zero"),
         ArithmeticError::DivisionNumeratorShiftOverflow => {
+            panic!("CRITICAL MATH EXCEPTION: I64F64 Division Numerator Shift Overflow")
+        }
+        ArithmeticError::Overflow => {
             panic!("CRITICAL MATH EXCEPTION: I64F64 Division Numerator Shift Overflow")
         }
         ArithmeticError::IntegerDivisionOverflow => {
@@ -183,14 +187,12 @@ impl I64F64 {
     }
 
     #[inline]
-    pub(crate) fn fallible_div(self, rhs: Self) -> Result<Self, ArithmeticError> {
+    pub fn fallible_div(self, rhs: Self) -> Result<Self, ArithmeticError> {
         if rhs.0 == 0 {
             return Err(ArithmeticError::DivisionByZero);
         }
-        let leading_zeros = self.0.leading_zeros();
-        let leading_ones = self.0.leading_ones();
-        if (self.0 > 0 && leading_zeros < 64) || (self.0 < 0 && leading_ones < 64) {
-            return Err(ArithmeticError::DivisionNumeratorShiftOverflow);
+        if self.0 >= (1i128 << 64) || self.0 <= -(1i128 << 64) {
+            return Err(ArithmeticError::Overflow);
         }
         let shifted_numerator = self.0 << Self::FRAC_BITS;
         shifted_numerator
