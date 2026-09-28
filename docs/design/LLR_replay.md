@@ -114,3 +114,37 @@ Raw-ADC-derived replay input projection shall preserve `context_id` when present
 ### LLR-REPLAY-PROJ-006: Raw ADC Stable Projection
 The same admitted raw ADC observations and metadata shall produce the same raw-ADC-derived replay input.
 *Traces to: HLR-REPLAY-PROJ-006*
+
+
+## 7. Binary Trace Frame Layout (LLR-REPLAY-FRAME)
+
+### LLR-REPLAY-FRAME-001: S3TraceFrame Memory Layout and Packing
+The binary replay trace frame shall define `S3TraceFrame` as an 80-byte struct annotated with `#[repr(C)]`, containing the following fields in declaration order:
+1. `sequence_id` (`u64`): monotonic frame sequence identifier.
+2. `timestamp_ticks` (`u64`): hardware timer tick count.
+3. `quaternion` (`[I64F64; 4]`, 64 bytes): $S^3$ unit quaternion state.
+4. `status_flags` (`u32`): frame health and validity bitfield.
+5. `reserved` (`u32`): alignment padding bytes explicitly initialized to zero.
+*Traces to: HLR-REPLAY-FRAME-001*
+
+### LLR-REPLAY-FRAME-002: Explicit Alignment Validation
+The compiler-enforced `S3TraceFrame` layout shall have a total size of exactly 80 bytes and an alignment requirement of 8 bytes, with no implicit padding gaps between fields.
+*Traces to: HLR-REPLAY-FRAME-001*
+
+
+## 8. Zero-Copy Ingestion (LLR-REPLAY-INGEST)
+
+### LLR-REPLAY-INGEST-001: Zero-Copy Ingestion Safety
+Binary replay trace ingestion shall parse a byte slice reference (`&[u8]`) into an `&S3TraceFrame` without copying frame data or performing dynamic allocation. Alignment shall be validated before reference casting, and the implementation shall remain `no_std` compliant.
+*Traces to: HLR-REPLAY-INGEST-001*
+
+### LLR-REPLAY-INGEST-002: Fallible Ingestion Errors
+Zero-copy ingestion shall return `ParseError::MisalignedBuffer` for unaligned input pointers and `ParseError::BufferTooSmall` for truncated byte slices.
+*Traces to: HLR-REPLAY-INGEST-001*
+
+
+## 9. Binary Serialization (LLR-REPLAY-SER)
+
+### LLR-REPLAY-SER-001: Bit-Exact Byte Encoding
+Binary serialization shall provide `to_bytes` byte-slice writing without dynamic memory allocation or an `alloc` dependency. The encoding shall be bit-exact and use little-endian byte order consistently across target hardware boundaries.
+*Traces to: HLR-REPLAY-SER-001*
