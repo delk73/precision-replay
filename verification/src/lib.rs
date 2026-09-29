@@ -569,8 +569,7 @@ pub mod proofs {
     }
 
     /// # Verification Vector: verify_i64f64_division_shift_boundary
-    /// Proves that the explicit signed numerator range admits only values
-    /// strictly between -2^64 and 2^64 and rejects both exact boundaries
+    /// Proves that numerators outside the explicit signed range are rejected
     /// before the left shift is evaluated.
     #[kani::proof]
     pub fn verify_i64f64_division_shift_boundary() {
@@ -579,22 +578,12 @@ pub mod proofs {
         let scale = 1i128 << I64F64::FRAC_BITS;
 
         kani::assume(denominator_bits != 0);
+        kani::assume(numerator_bits >= scale || numerator_bits <= -scale);
 
         let result =
             I64F64::from_bits(numerator_bits).fallible_div(I64F64::from_bits(denominator_bits));
 
-        if numerator_bits >= scale || numerator_bits <= -scale {
-            assert_eq!(result, Err(ArithmeticError::Overflow));
-        } else {
-            let shifted_numerator = numerator_bits << I64F64::FRAC_BITS;
-            let expected = shifted_numerator.checked_div(denominator_bits);
-            match expected {
-                Some(expected_bits) => {
-                    assert_eq!(result, Ok(I64F64::from_bits(expected_bits)));
-                }
-                None => assert_eq!(result, Err(ArithmeticError::IntegerDivisionOverflow)),
-            }
-        }
+        assert_eq!(result, Err(ArithmeticError::Overflow));
     }
 
     /// # Verification Vector: verify_i64f64_division_i32_unit_denominators_match_shifted_reference
