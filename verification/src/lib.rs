@@ -586,6 +586,31 @@ pub mod proofs {
         assert_eq!(result, Err(ArithmeticError::Overflow));
     }
 
+    /// # Verification Vector: verify_i64f64_division_in_range_equivalence
+    /// Proves that strictly in-range numerators and bounded non-unit
+    /// denominators match the shifted-numerator division reference.
+    #[kani::proof]
+    pub fn verify_i64f64_division_in_range_equivalence() {
+        let numerator_bits: i128 = kani::any();
+        let denominator_bits: i128 = kani::any();
+        let scale = 1i128 << I64F64::FRAC_BITS;
+
+        kani::assume(denominator_bits != 0);
+        kani::assume(numerator_bits > -scale && numerator_bits < scale);
+        kani::assume(
+            (denominator_bits >= -0x7FFF_FFFF && denominator_bits <= -2)
+                || (denominator_bits >= 2 && denominator_bits <= 0x7FFF_FFFF),
+        );
+
+        let result =
+            I64F64::from_bits(numerator_bits).fallible_div(I64F64::from_bits(denominator_bits));
+        let expected_bits = (numerator_bits << I64F64::FRAC_BITS)
+            .checked_div(denominator_bits)
+            .unwrap();
+
+        assert_eq!(result, Ok(I64F64::from_bits(expected_bits)));
+    }
+
     /// # Verification Vector: verify_i64f64_division_i32_unit_denominators_match_shifted_reference
     /// Proves that bounded symbolic `i32` raw numerators with unit
     /// denominators match the explicit shifted-numerator reference quotient.
