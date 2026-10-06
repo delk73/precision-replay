@@ -587,16 +587,16 @@ pub mod proofs {
     }
 
     /// # Verification Vector: verify_i64f64_division_in_range_equivalence
-    /// Proves that strictly in-range numerators and bounded non-unit
+    /// Proves that shift-safe numerators and bounded non-unit
     /// denominators match the shifted-numerator division reference.
     #[kani::proof]
     pub fn verify_i64f64_division_in_range_equivalence() {
         let numerator_bits: i128 = kani::any();
         let denominator_bits: i128 = kani::any();
-        let scale = 1i128 << I64F64::FRAC_BITS;
+        let shift_safe_bound = 1i128 << (I64F64::FRAC_BITS - 1);
 
         kani::assume(denominator_bits != 0);
-        kani::assume(numerator_bits > -scale && numerator_bits < scale);
+        kani::assume(numerator_bits > -shift_safe_bound && numerator_bits < shift_safe_bound);
         kani::assume(
             (denominator_bits >= -0x7FFF_FFFF && denominator_bits <= -2)
                 || (denominator_bits >= 2 && denominator_bits <= 0x7FFF_FFFF),
