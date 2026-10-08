@@ -117,7 +117,93 @@ fn expected_round(bits: i128) -> i128 {
     integral + increment
 }
 
+fn operator_add(lhs: i128, rhs: i128) -> Result<i128, ()> {
+    std::panic::catch_unwind(|| (I64F64::from_bits(lhs) + I64F64::from_bits(rhs)).to_bits())
+        .map_err(|_| ())
+}
+
+fn operator_sub(lhs: i128, rhs: i128) -> Result<i128, ()> {
+    std::panic::catch_unwind(|| (I64F64::from_bits(lhs) - I64F64::from_bits(rhs)).to_bits())
+        .map_err(|_| ())
+}
+
 proptest! {
+    #[test]
+    fn fallible_add_and_sub_match_checked_primitives(
+        lhs in any::<i128>(),
+        rhs in any::<i128>(),
+    ) {
+        let expected_add = lhs.checked_add(rhs).ok_or(());
+        let expected_sub = lhs.checked_sub(rhs).ok_or(());
+
+        prop_assert_eq!(operator_add(lhs, rhs), expected_add);
+        prop_assert_eq!(operator_sub(lhs, rhs), expected_sub);
+    }
+
+    #[test]
+    fn public_operators_match_fallible_counterparts(
+        lhs in any::<i128>(),
+        rhs in any::<i128>(),
+        denominator in any::<i128>(),
+    ) {
+        let lhs_value = I64F64::from_bits(lhs);
+        let rhs_value = I64F64::from_bits(rhs);
+
+        if let Ok(expected) = expected_mul(lhs, rhs) {
+            prop_assert_eq!((lhs_value * rhs_value).to_bits(), expected);
+        }
+
+        let denominator_value = I64F64::from_bits(denominator);
+        if let Ok(expected) = lhs_value.fallible_div(denominator_value) {
+            prop_assert_eq!(
+                (lhs_value / denominator_value).to_bits(),
+                expected.to_bits()
+            );
+        }
+
+        if lhs.checked_add(rhs).is_some() {
+            prop_assert_eq!(
+                operator_add(lhs, rhs),
+                Ok((lhs_value + rhs_value).to_bits())
+            );
+        }
+        if lhs.checked_sub(rhs).is_some() {
+            prop_assert_eq!(
+                operator_sub(lhs, rhs),
+                Ok((lhs_value - rhs_value).to_bits())
+            );
+        }
+    }
+
+    #[test]
+    fn algebraic_identities_and_round_tripping(
+        value in any::<i128>(),
+        addend in any::<i128>(),
+    ) {
+        let value_fixed = I64F64::from_bits(value);
+        let zero = I64F64::from_bits(0);
+        let one = I64F64::from_bits(I64F64::SCALE);
+
+        prop_assert_eq!((value_fixed + zero).to_bits(), value);
+        prop_assert_eq!((zero + value_fixed).to_bits(), value);
+        prop_assert_eq!((value_fixed - zero).to_bits(), value);
+        prop_assert_eq!((value_fixed - value_fixed).to_bits(), 0);
+        prop_assert_eq!((value_fixed * zero).to_bits(), 0);
+        prop_assert_eq!((zero * value_fixed).to_bits(), 0);
+        prop_assert_eq!((value_fixed * one).to_bits(), value);
+        prop_assert_eq!((one * value_fixed).to_bits(), value);
+
+        if value != i128::MIN {
+            let inverse = I64F64::from_bits(-value);
+            prop_assert_eq!((value_fixed + inverse).to_bits(), 0);
+        }
+
+        if let Some(sum) = value.checked_add(addend) {
+            let round_tripped = I64F64::from_bits(sum) - I64F64::from_bits(addend);
+            prop_assert_eq!(round_tripped.to_bits(), value);
+        }
+    }
+
     #[test]
     fn fallible_div_matches_truncating_wide_reference(
         numerator in any::<i128>(),
