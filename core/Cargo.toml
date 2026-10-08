@@ -8,6 +8,9 @@ description = "Deterministic, platform-agnostic replay engine core"
 [dependencies]
 # Fixed-point math and formal verification dependencies go here
 
+[dev-dependencies]
+proptest = "1"
+
 [lib]
 name = "precision_replay_core"
 path = "src/lib.rs"

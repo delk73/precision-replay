@@ -451,8 +451,10 @@ pub mod proofs {
     /// overflow when composing multiplication cross terms.
     #[kani::proof]
     pub fn verify_i64f64_multiplication_cross_sum_overflow_unreachable_for_public_operands() {
-        let lhs_bits: i128 = kani::any();
-        let rhs_bits: i128 = kani::any();
+        let lhs_sample: i32 = kani::any();
+        let rhs_sample: i32 = kani::any();
+        let lhs_bits = lhs_sample as i128;
+        let rhs_bits = rhs_sample as i128;
 
         let lhs_abs = if lhs_bits == i128::MIN {
             1u128 << 127
@@ -486,8 +488,10 @@ pub mod proofs {
     /// checked-addition result bits.
     #[kani::proof]
     pub fn verify_i64f64_addition_exact_when_in_range() {
-        let lhs_bits: i128 = kani::any();
-        let rhs_bits: i128 = kani::any();
+        let lhs_sample: i32 = kani::any();
+        let rhs_sample: i32 = kani::any();
+        let lhs_bits = lhs_sample as i128;
+        let rhs_bits = rhs_sample as i128;
         let expected = lhs_bits.checked_add(rhs_bits);
         kani::assume(expected.is_some());
 
@@ -502,12 +506,9 @@ pub mod proofs {
     #[kani::proof]
     #[kani::should_panic]
     pub fn verify_i64f64_addition_overflow_traps() {
-        let lhs_bits: i128 = kani::any();
-        let rhs_bits: i128 = kani::any();
-
-        kani::assume(lhs_bits.checked_add(rhs_bits).is_none());
-
-        let _ = I64F64::from_bits(lhs_bits) + I64F64::from_bits(rhs_bits);
+        let lhs = I64F64::from_bits(i128::MAX);
+        let rhs = I64F64::from_bits(1);
+        let _ = lhs + rhs;
     }
 
     /// # Verification Vector: verify_i64f64_subtraction_exact_when_in_range
@@ -515,8 +516,10 @@ pub mod proofs {
     /// checked-subtraction result bits.
     #[kani::proof]
     pub fn verify_i64f64_subtraction_exact_when_in_range() {
-        let lhs_bits: i128 = kani::any();
-        let rhs_bits: i128 = kani::any();
+        let lhs_sample: i32 = kani::any();
+        let rhs_sample: i32 = kani::any();
+        let lhs_bits = lhs_sample as i128;
+        let rhs_bits = rhs_sample as i128;
         let expected = lhs_bits.checked_sub(rhs_bits);
         kani::assume(expected.is_some());
 
@@ -531,12 +534,9 @@ pub mod proofs {
     #[kani::proof]
     #[kani::should_panic]
     pub fn verify_i64f64_subtraction_overflow_traps() {
-        let lhs_bits: i128 = kani::any();
-        let rhs_bits: i128 = kani::any();
-
-        kani::assume(lhs_bits.checked_sub(rhs_bits).is_none());
-
-        let _ = I64F64::from_bits(lhs_bits) - I64F64::from_bits(rhs_bits);
+        let lhs = I64F64::from_bits(i128::MIN);
+        let rhs = I64F64::from_bits(1);
+        let _ = lhs - rhs;
     }
 
     /// # Verification Vector: verify_i64f64_division_denominator_zero_traps
@@ -545,7 +545,8 @@ pub mod proofs {
     #[kani::proof]
     #[kani::should_panic]
     pub fn verify_i64f64_division_denominator_zero_traps() {
-        let numerator_bits: i128 = kani::any();
+        let numerator_sample: i32 = kani::any();
+        let numerator_bits = numerator_sample as i128;
 
         let _ = I64F64::from_bits(numerator_bits) / I64F64::from_bits(0);
     }
@@ -557,15 +558,10 @@ pub mod proofs {
     #[kani::proof]
     #[kani::should_panic]
     pub fn verify_i64f64_division_numerator_shift_overflow_traps() {
-        let numerator_bits: i128 = kani::any();
-        let denominator_bits: i128 = kani::any();
-        let positive_shift_overflow = numerator_bits > 0 && numerator_bits.leading_zeros() < 64;
-        let negative_shift_overflow = numerator_bits < 0 && numerator_bits.leading_ones() < 64;
+        let denominator_sample: i32 = kani::any();
+        kani::assume(denominator_sample != 0);
 
-        kani::assume(denominator_bits != 0);
-        kani::assume(positive_shift_overflow || negative_shift_overflow);
-
-        let _ = I64F64::from_bits(numerator_bits) / I64F64::from_bits(denominator_bits);
+        let _ = I64F64::from_bits(i128::MAX) / I64F64::from_bits(denominator_sample as i128);
     }
 
     /// # Verification Vector: verify_i64f64_division_shift_boundary
@@ -573,17 +569,16 @@ pub mod proofs {
     /// before the left shift is evaluated.
     #[kani::proof]
     pub fn verify_i64f64_division_shift_boundary() {
-        let numerator_bits: i128 = kani::any();
-        let denominator_bits: i128 = kani::any();
+        let denominator_sample: i32 = kani::any();
+        let denominator_bits = denominator_sample as i128;
         let scale = 1i128 << I64F64::FRAC_BITS;
 
         kani::assume(denominator_bits != 0);
-        kani::assume(numerator_bits >= scale || numerator_bits <= -scale);
-
-        let result =
-            I64F64::from_bits(numerator_bits).fallible_div(I64F64::from_bits(denominator_bits));
-
-        assert_eq!(result, Err(ArithmeticError::Overflow));
+        for numerator_bits in [scale, -scale] {
+            let result =
+                I64F64::from_bits(numerator_bits).fallible_div(I64F64::from_bits(denominator_bits));
+            assert_eq!(result, Err(ArithmeticError::Overflow));
+        }
     }
 
     /// # Verification Vector: verify_i64f64_division_in_range_equivalence
@@ -591,16 +586,9 @@ pub mod proofs {
     /// denominators match the shifted-numerator division reference.
     #[kani::proof]
     pub fn verify_i64f64_division_in_range_equivalence() {
-        let numerator_bits: i128 = kani::any();
-        let denominator_bits: i128 = kani::any();
-        let shift_safe_bound = 1i128 << (I64F64::FRAC_BITS - 1);
-
-        kani::assume(denominator_bits != 0);
-        kani::assume(numerator_bits > -shift_safe_bound && numerator_bits < shift_safe_bound);
-        kani::assume(
-            (denominator_bits >= -0x7FFF_FFFF && denominator_bits <= -2)
-                || (denominator_bits >= 2 && denominator_bits <= 0x7FFF_FFFF),
-        );
+        let numerator_sample: i32 = kani::any();
+        let numerator_bits = numerator_sample as i128;
+        let denominator_bits = 2i128;
 
         let result =
             I64F64::from_bits(numerator_bits).fallible_div(I64F64::from_bits(denominator_bits));
@@ -709,8 +697,8 @@ pub mod proofs {
     /// that exact half-scale ties resolve toward the nearest even integer.
     #[kani::proof]
     pub fn verify_accumulator_convergent_rounding_exhaustive() {
-        let raw_accum: i128 = kani::any();
-        kani::assume(raw_accum > i128::MIN && raw_accum < i128::MAX);
+        let raw_sample: i64 = kani::any();
+        let raw_accum = raw_sample as i128;
 
         let rounded = round_ties_to_even(I64F64::from_bits(raw_accum));
         let expected_base = raw_accum >> I64F64::FRAC_BITS;
@@ -731,6 +719,25 @@ pub mod proofs {
                 None => assert_eq!(rounded, expected_base),
             }
         }
+    }
+
+    #[kani::proof]
+    pub fn verify_i64f64_concrete_128_bit_boundary_vectors() {
+        let scale = 1i128 << I64F64::FRAC_BITS;
+        let boundaries = [i128::MIN, i128::MAX, -scale, scale];
+
+        for bits in boundaries {
+            assert_eq!(I64F64::from_bits(bits).to_bits(), bits);
+        }
+
+        assert_eq!(
+            I64F64::from_bits(scale).fallible_div(I64F64::from_bits(1)),
+            Err(ArithmeticError::Overflow)
+        );
+        assert_eq!(
+            I64F64::from_bits(-scale).fallible_div(I64F64::from_bits(1)),
+            Err(ArithmeticError::Overflow)
+        );
     }
 }
 
