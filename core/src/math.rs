@@ -208,15 +208,17 @@ impl I64F64 {
         for (i, &lhs_limb) in lhs_limbs.iter().enumerate() {
             let mut carry = 0u128;
             for (j, &rhs_limb) in rhs_limbs.iter().enumerate() {
-                let index = i + j;
-                let value =
-                    (lhs_limb as u128) * (rhs_limb as u128) + product[index] as u128 + carry;
+                let index = i.saturating_add(j);
+                let partial = (lhs_limb as u128).wrapping_mul(rhs_limb as u128);
+                let value = partial
+                    .wrapping_add(product[index] as u128)
+                    .wrapping_add(carry);
                 product[index] = value as u64;
                 carry = value >> 64;
             }
 
-            let index = i + 2;
-            let value = product[index] as u128 + carry;
+            let index = i.saturating_add(2);
+            let value = (product[index] as u128).wrapping_add(carry);
             product[index] = value as u64;
             debug_assert_eq!(value >> 64, 0);
         }
@@ -265,7 +267,7 @@ impl I64F64 {
             if shifted == (1u128 << 127) {
                 Ok(Self(i128::MIN))
             } else {
-                Ok(Self(-(shifted as i128)))
+                Ok(Self((shifted as i128).wrapping_neg()))
             }
         } else if shifted <= i128::MAX as u128 {
             Ok(Self(shifted as i128))
