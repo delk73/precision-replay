@@ -36,6 +36,20 @@ Division of two `I64F64` values ($A \div B$) must execute via the following dete
 Accumulator-to-integer conversion shall eliminate directional bias by rounding to nearest and breaking exact half-scale ties toward the even integral value.
 *Traces to: HLR-MATH-REP-002*
 
+### LLR-REPLAY-MATH-OPS-005: Fixed-Point Vector Dot Product
+Vector dot products shall evaluate $N$-element slice pairs as $\sum_{i=0}^{N-1} (A_i \times B_i)$ using intermediate 256-bit-wide limb accumulation before discarding the low 64 fractional bits.
+
+The implementation shall reject mismatched slice lengths where $N_A \neq N_B$. It shall trap if intermediate limb accumulation overflows or if the final signed `i128` result exceeds the representable capacity after fixed-point realignment.
+
+Verification shall combine a bounded Kani harness with a native `proptest` suite.
+
+### LLR-REPLAY-MATH-OPS-006: Fixed-Point Linear Interpolation Bounds
+Fixed-point linear interpolation shall evaluate $A + t(B - A)$ using a fixed-point parameter $t \in [0, \text{SCALE}]$, where $\text{SCALE} = 2^{64}$.
+
+The implementation shall require $t \in [0, \text{SCALE}]$, enforce exact endpoint equality such that $t = 0 \implies A$ and $t = \text{SCALE} \implies B$, and trap on internal distance subtraction or scale multiplication overflow.
+
+Verification shall combine a bounded Kani harness with a native `proptest` suite.
+
 ## 3. CORDIC Trigonometric Requirements (LLR-REPLAY-MATH-CORDIC)
 
 ### LLR-REPLAY-MATH-CORDIC-001: Quadrant Reduction
