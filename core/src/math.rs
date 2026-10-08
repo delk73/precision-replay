@@ -18,6 +18,8 @@ pub enum ArithmeticError {
     DivisionNumeratorShiftOverflow,
     Overflow,
     IntegerDivisionOverflow,
+    DimensionMismatch,
+    ParameterOutOfRange,
 }
 
 #[cold]
@@ -51,6 +53,10 @@ fn panic_arithmetic<T>(error: ArithmeticError) -> T {
         }
         ArithmeticError::IntegerDivisionOverflow => {
             panic!("CRITICAL MATH EXCEPTION: I64F64 Integer Division Overflow")
+        }
+        ArithmeticError::DimensionMismatch => panic!("CRITICAL MATH EXCEPTION: Dimension Mismatch"),
+        ArithmeticError::ParameterOutOfRange => {
+            panic!("CRITICAL MATH EXCEPTION: Parameter Out Of Range")
         }
     }
 }
@@ -184,6 +190,122 @@ impl I64F64 {
         } else {
             Ok(Self(final_signed))
         }
+    }
+
+    fn wide_product(self, rhs: Self) -> Result<(i128, u128), ArithmeticError> {
+        let abs_value = |value: i128| {
+            let unsigned = value as u128;
+            let mask = (value >> 127) as u128;
+            (unsigned ^ mask).wrapping_add(mask & 1)
+        };
+
+        let lhs = abs_value(self.0);
+        let rhs_abs = abs_value(rhs.0);
+        let lhs_limbs = [lhs as u64, (lhs >> 64) as u64];
+        let rhs_limbs = [rhs_abs as u64, (rhs_abs >> 64) as u64];
+        let mut product = [0u64; 4];
+
+        for (i, &lhs_limb) in lhs_limbs.iter().enumerate() {
+            let mut carry = 0u128;
+            for (j, &rhs_limb) in rhs_limbs.iter().enumerate() {
+                let index = i + j;
+                let partial = (lhs_limb as u128) * (rhs_limb as u128);
+                let value = partial
+                    .checked_add(product[index] as u128)
+                    .and_then(|value| value.checked_add(carry))
+                    .ok_or(ArithmeticError::BitPoolCompositionFailure)?;
+                product[index] = value as u64;
+                carry = value >> 64;
+            }
+
+            let mut index = i + 2;
+            while carry != 0 {
+                if index >= product.len() {
+                    return Err(ArithmeticError::BitPoolCompositionFailure);
+                }
+                let value = (product[index] as u128)
+                    .checked_add(carry)
+                    .ok_or(ArithmeticError::BitPoolCompositionFailure)?;
+                product[index] = value as u64;
+                carry = value >> 64;
+                index += 1;
+            }
+        }
+
+        let mut low = (product[1] as u128) << 64 | product[0] as u128;
+        let mut high = (product[3] as u128) << 64 | product[2] as u128;
+        if (self.0 < 0) ^ (rhs.0 < 0) {
+            let (negated_low, carry) = (!low).overflowing_add(1);
+            low = negated_low;
+            high = (!high).wrapping_add(carry as u128);
+        }
+
+        Ok((high as i128, low))
+    }
+
+    /// Computes a fixed-point dot product with exact 256-bit intermediate
+    /// accumulation before discarding the fractional bits.
+    pub fn dot_product(a: &[Self], b: &[Self]) -> Result<Self, ArithmeticError> {
+        if a.len() != b.len() {
+            return Err(ArithmeticError::DimensionMismatch);
+        }
+
+        let mut high = 0i128;
+        let mut low = 0u128;
+        for (&lhs, &rhs) in a.iter().zip(b) {
+            let (term_high, term_low) = lhs.wide_product(rhs)?;
+            let (next_low, carry) = low.overflowing_add(term_low);
+            let next_high = high
+                .checked_add(term_high)
+                .and_then(|value| value.checked_add(carry as i128))
+                .ok_or(ArithmeticError::CapacityBoundOverflow)?;
+            low = next_low;
+            high = next_high;
+        }
+
+        let negative = high < 0;
+        let (magnitude_low, magnitude_high) = if negative {
+            let (magnitude_low, carry) = (!low).overflowing_add(1);
+            (magnitude_low, (!high as u128).wrapping_add(carry as u128))
+        } else {
+            (low, high as u128)
+        };
+        let shifted_magnitude_high = magnitude_high >> Self::FRAC_BITS;
+        let shifted_magnitude =
+            (magnitude_low >> Self::FRAC_BITS) | ((magnitude_high as u128) << Self::FRAC_BITS);
+        if shifted_magnitude_high != 0 {
+            return Err(ArithmeticError::CapacityBoundOverflow);
+        }
+        if negative {
+            if shifted_magnitude > (1u128 << 127) {
+                return Err(ArithmeticError::CapacityBoundOverflow);
+            }
+            if shifted_magnitude == (1u128 << 127) {
+                Ok(Self(i128::MIN))
+            } else {
+                Ok(Self(-(shifted_magnitude as i128)))
+            }
+        } else if shifted_magnitude <= i128::MAX as u128 {
+            Ok(Self(shifted_magnitude as i128))
+        } else {
+            Err(ArithmeticError::CapacityBoundOverflow)
+        }
+    }
+
+    pub fn lerp(a: Self, b: Self, t: Self) -> Result<Self, ArithmeticError> {
+        if t.0 < 0 || t.0 > Self::SCALE {
+            return Err(ArithmeticError::ParameterOutOfRange);
+        }
+        if t.0 == 0 {
+            return Ok(a);
+        }
+        if t.0 == Self::SCALE {
+            return Ok(b);
+        }
+
+        let delta = b.fallible_sub(a)?;
+        let scaled_delta = delta.fallible_mul(t)?;
+        a.fallible_add(scaled_delta)
     }
 
     #[inline]

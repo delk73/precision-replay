@@ -739,6 +739,37 @@ pub mod proofs {
             Err(ArithmeticError::Overflow)
         );
     }
+
+    /// # Verification Vector: verify_i64f64_dot_product_bounded_unroll
+    #[kani::proof]
+    #[kani::unwind(5)]
+    pub fn verify_i64f64_dot_product_bounded_unroll() {
+        let length: usize = kani::any();
+        kani::assume(length <= 4);
+        let mut lhs = [I64F64::from_bits(0); 4];
+        let mut rhs = [I64F64::from_bits(0); 4];
+        for value in &mut lhs {
+            *value = I64F64::from_bits(kani::any::<i32>() as i128);
+        }
+        for value in &mut rhs {
+            *value = I64F64::from_bits(kani::any::<i32>() as i128);
+        }
+
+        assert_eq!(
+            I64F64::dot_product(&lhs[..length], &rhs[..length]),
+            I64F64::dot_product(&rhs[..length], &lhs[..length])
+        );
+    }
+
+    /// # Verification Vector: verify_i64f64_lerp_endpoint_exactness
+    #[kani::proof]
+    pub fn verify_i64f64_lerp_endpoint_exactness() {
+        let a = I64F64::from_bits(kani::any::<i32>() as i128);
+        let b = I64F64::from_bits(kani::any::<i32>() as i128);
+
+        assert_eq!(I64F64::lerp(a, b, I64F64::from_bits(0)), Ok(a));
+        assert_eq!(I64F64::lerp(a, b, I64F64::from_bits(I64F64::SCALE)), Ok(b));
+    }
 }
 
 #[cfg(test)]

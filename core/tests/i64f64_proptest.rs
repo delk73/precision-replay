@@ -249,6 +249,84 @@ proptest! {
         let actual = round_ties_to_even(I64F64::from_bits(bits));
         prop_assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn dot_product_rejects_mismatched_slices(
+        lhs in prop::collection::vec(any::<i64>(), 0..5),
+        rhs in prop::collection::vec(any::<i64>(), 0..5),
+    ) {
+        prop_assume!(lhs.len() != rhs.len());
+        let lhs = lhs.into_iter().map(|value| I64F64::from_bits(value as i128)).collect::<Vec<_>>();
+        let rhs = rhs.into_iter().map(|value| I64F64::from_bits(value as i128)).collect::<Vec<_>>();
+
+        prop_assert_eq!(
+            I64F64::dot_product(&lhs, &rhs),
+            Err(ArithmeticError::DimensionMismatch)
+        );
+    }
+
+    #[test]
+    fn dot_product_is_commutative(
+        values in prop::collection::vec(any::<i32>(), 0..5),
+        other in prop::collection::vec(any::<i32>(), 0..5),
+    ) {
+        prop_assume!(values.len() == other.len());
+        let lhs = values.into_iter().map(|value| I64F64::from_bits(value as i128)).collect::<Vec<_>>();
+        let rhs = other.into_iter().map(|value| I64F64::from_bits(value as i128)).collect::<Vec<_>>();
+
+        prop_assert_eq!(I64F64::dot_product(&lhs, &rhs), I64F64::dot_product(&rhs, &lhs));
+    }
+
+    #[test]
+    fn single_element_dot_product_matches_scalar_multiplication(
+        lhs in any::<i32>(),
+        rhs in any::<i32>(),
+    ) {
+        let lhs = I64F64::from_bits(lhs as i128);
+        let rhs = I64F64::from_bits(rhs as i128);
+        prop_assert_eq!(I64F64::dot_product(&[lhs], &[rhs]), Ok(lhs * rhs));
+    }
+
+    #[test]
+    fn lerp_rejects_parameters_outside_unit_interval(
+        t in any::<i128>(),
+    ) {
+        prop_assume!(t < 0 || t > I64F64::SCALE);
+        let value = I64F64::from_bits(1);
+        prop_assert_eq!(
+            I64F64::lerp(value, value, I64F64::from_bits(t)),
+            Err(ArithmeticError::ParameterOutOfRange)
+        );
+    }
+
+    #[test]
+    fn lerp_has_exact_endpoints(a in any::<i128>(), b in any::<i128>()) {
+        prop_assert_eq!(
+            I64F64::lerp(I64F64::from_bits(a), I64F64::from_bits(b), I64F64::from_bits(0)),
+            Ok(I64F64::from_bits(a))
+        );
+        prop_assert_eq!(
+            I64F64::lerp(
+                I64F64::from_bits(a),
+                I64F64::from_bits(b),
+                I64F64::from_bits(I64F64::SCALE)
+            ),
+            Ok(I64F64::from_bits(b))
+        );
+    }
+
+    #[test]
+    fn lerp_is_monotonic_for_ordered_endpoints(
+        a in -1_000_000i128..1_000_000i128,
+        b in -1_000_000i128..1_000_000i128,
+        t in 0i128..=I64F64::SCALE,
+    ) {
+        prop_assume!(a <= b);
+        let result = I64F64::lerp(I64F64::from_bits(a), I64F64::from_bits(b), I64F64::from_bits(t));
+        prop_assert!(result.is_ok());
+        prop_assert!(result.unwrap().to_bits() >= a);
+        prop_assert!(result.unwrap().to_bits() <= b);
+    }
 }
 
 #[test]
