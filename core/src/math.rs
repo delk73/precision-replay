@@ -192,7 +192,7 @@ impl I64F64 {
         }
     }
 
-    fn wide_product(self, rhs: Self) -> Result<(i128, u128), ArithmeticError> {
+    fn wide_product(self, rhs: Self) -> (i128, u128) {
         let abs_value = |value: i128| {
             let unsigned = value as u128;
             let mask = (value >> 127) as u128;
@@ -209,27 +209,16 @@ impl I64F64 {
             let mut carry = 0u128;
             for (j, &rhs_limb) in rhs_limbs.iter().enumerate() {
                 let index = i + j;
-                let partial = (lhs_limb as u128) * (rhs_limb as u128);
-                let value = partial
-                    .checked_add(product[index] as u128)
-                    .and_then(|value| value.checked_add(carry))
-                    .ok_or(ArithmeticError::BitPoolCompositionFailure)?;
+                let value =
+                    (lhs_limb as u128) * (rhs_limb as u128) + product[index] as u128 + carry;
                 product[index] = value as u64;
                 carry = value >> 64;
             }
 
-            let mut index = i + 2;
-            while carry != 0 {
-                if index >= product.len() {
-                    return Err(ArithmeticError::BitPoolCompositionFailure);
-                }
-                let value = (product[index] as u128)
-                    .checked_add(carry)
-                    .ok_or(ArithmeticError::BitPoolCompositionFailure)?;
-                product[index] = value as u64;
-                carry = value >> 64;
-                index += 1;
-            }
+            let index = i + 2;
+            let value = product[index] as u128 + carry;
+            product[index] = value as u64;
+            debug_assert_eq!(value >> 64, 0);
         }
 
         let mut low = (product[1] as u128) << 64 | product[0] as u128;
@@ -240,7 +229,49 @@ impl I64F64 {
             high = (!high).wrapping_add(carry as u128);
         }
 
-        Ok((high as i128, low))
+        (high as i128, low)
+    }
+
+    fn add_wide_signed(
+        lhs: (i128, u128),
+        rhs: (i128, u128),
+    ) -> Result<(i128, u128), ArithmeticError> {
+        let (low, carry) = lhs.1.overflowing_add(rhs.1);
+        let high = lhs
+            .0
+            .checked_add(rhs.0)
+            .and_then(|value| value.checked_add(carry as i128))
+            .ok_or(ArithmeticError::CapacityBoundOverflow)?;
+        Ok((high, low))
+    }
+
+    fn truncate_wide_signed(value: (i128, u128)) -> Result<Self, ArithmeticError> {
+        let negative = value.0 < 0;
+        let magnitude = if negative {
+            let (low, carry) = (!value.1).overflowing_add(1);
+            ((!value.0 as u128).wrapping_add(carry as u128), low)
+        } else {
+            (value.0 as u128, value.1)
+        };
+        let shifted_high = magnitude.0 >> Self::FRAC_BITS;
+        let shifted = (magnitude.1 >> Self::FRAC_BITS) | (magnitude.0 << (128 - Self::FRAC_BITS));
+        if shifted_high != 0 {
+            return Err(ArithmeticError::CapacityBoundOverflow);
+        }
+        if negative {
+            if shifted > (1u128 << 127) {
+                return Err(ArithmeticError::CapacityBoundOverflow);
+            }
+            if shifted == (1u128 << 127) {
+                Ok(Self(i128::MIN))
+            } else {
+                Ok(Self(-(shifted as i128)))
+            }
+        } else if shifted <= i128::MAX as u128 {
+            Ok(Self(shifted as i128))
+        } else {
+            Err(ArithmeticError::CapacityBoundOverflow)
+        }
     }
 
     /// Computes a fixed-point dot product with exact 256-bit intermediate
@@ -253,43 +284,10 @@ impl I64F64 {
         let mut high = 0i128;
         let mut low = 0u128;
         for (&lhs, &rhs) in a.iter().zip(b) {
-            let (term_high, term_low) = lhs.wide_product(rhs)?;
-            let (next_low, carry) = low.overflowing_add(term_low);
-            let next_high = high
-                .checked_add(term_high)
-                .and_then(|value| value.checked_add(carry as i128))
-                .ok_or(ArithmeticError::CapacityBoundOverflow)?;
-            low = next_low;
-            high = next_high;
+            (high, low) = Self::add_wide_signed((high, low), lhs.wide_product(rhs))?;
         }
 
-        let negative = high < 0;
-        let (magnitude_low, magnitude_high) = if negative {
-            let (magnitude_low, carry) = (!low).overflowing_add(1);
-            (magnitude_low, (!high as u128).wrapping_add(carry as u128))
-        } else {
-            (low, high as u128)
-        };
-        let shifted_magnitude_high = magnitude_high >> Self::FRAC_BITS;
-        let shifted_magnitude =
-            (magnitude_low >> Self::FRAC_BITS) | ((magnitude_high as u128) << Self::FRAC_BITS);
-        if shifted_magnitude_high != 0 {
-            return Err(ArithmeticError::CapacityBoundOverflow);
-        }
-        if negative {
-            if shifted_magnitude > (1u128 << 127) {
-                return Err(ArithmeticError::CapacityBoundOverflow);
-            }
-            if shifted_magnitude == (1u128 << 127) {
-                Ok(Self(i128::MIN))
-            } else {
-                Ok(Self(-(shifted_magnitude as i128)))
-            }
-        } else if shifted_magnitude <= i128::MAX as u128 {
-            Ok(Self(shifted_magnitude as i128))
-        } else {
-            Err(ArithmeticError::CapacityBoundOverflow)
-        }
+        Self::truncate_wide_signed((high, low))
     }
 
     pub fn lerp(a: Self, b: Self, t: Self) -> Result<Self, ArithmeticError> {
