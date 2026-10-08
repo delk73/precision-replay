@@ -18,6 +18,8 @@ pub enum ArithmeticError {
     DivisionNumeratorShiftOverflow,
     Overflow,
     IntegerDivisionOverflow,
+    DimensionMismatch,
+    ParameterOutOfRange,
 }
 
 #[cold]
@@ -51,6 +53,10 @@ fn panic_arithmetic<T>(error: ArithmeticError) -> T {
         }
         ArithmeticError::IntegerDivisionOverflow => {
             panic!("CRITICAL MATH EXCEPTION: I64F64 Integer Division Overflow")
+        }
+        ArithmeticError::DimensionMismatch => panic!("CRITICAL MATH EXCEPTION: Dimension Mismatch"),
+        ArithmeticError::ParameterOutOfRange => {
+            panic!("CRITICAL MATH EXCEPTION: Parameter Out Of Range")
         }
     }
 }
@@ -184,6 +190,122 @@ impl I64F64 {
         } else {
             Ok(Self(final_signed))
         }
+    }
+
+    fn wide_product(self, rhs: Self) -> (i128, u128) {
+        let abs_value = |value: i128| {
+            let unsigned = value as u128;
+            let mask = (value >> 127) as u128;
+            (unsigned ^ mask).wrapping_add(mask & 1)
+        };
+
+        let lhs = abs_value(self.0);
+        let rhs_abs = abs_value(rhs.0);
+        let lhs_limbs = [lhs as u64, (lhs >> 64) as u64];
+        let rhs_limbs = [rhs_abs as u64, (rhs_abs >> 64) as u64];
+        let mut product = [0u64; 4];
+
+        for (i, &lhs_limb) in lhs_limbs.iter().enumerate() {
+            let mut carry = 0u128;
+            for (j, &rhs_limb) in rhs_limbs.iter().enumerate() {
+                let index = i.saturating_add(j);
+                let partial = (lhs_limb as u128).wrapping_mul(rhs_limb as u128);
+                let value = partial
+                    .wrapping_add(product[index] as u128)
+                    .wrapping_add(carry);
+                product[index] = value as u64;
+                carry = value >> 64;
+            }
+
+            let index = i.saturating_add(2);
+            let value = (product[index] as u128).wrapping_add(carry);
+            product[index] = value as u64;
+            debug_assert_eq!(value >> 64, 0);
+        }
+
+        let mut low = (product[1] as u128) << 64 | product[0] as u128;
+        let mut high = (product[3] as u128) << 64 | product[2] as u128;
+        if (self.0 < 0) ^ (rhs.0 < 0) {
+            let (negated_low, carry) = (!low).overflowing_add(1);
+            low = negated_low;
+            high = (!high).wrapping_add(carry as u128);
+        }
+
+        (high as i128, low)
+    }
+
+    fn add_wide_signed(
+        lhs: (i128, u128),
+        rhs: (i128, u128),
+    ) -> Result<(i128, u128), ArithmeticError> {
+        let (low, carry) = lhs.1.overflowing_add(rhs.1);
+        let high = lhs
+            .0
+            .checked_add(rhs.0)
+            .and_then(|value| value.checked_add(carry as i128))
+            .ok_or(ArithmeticError::CapacityBoundOverflow)?;
+        Ok((high, low))
+    }
+
+    fn truncate_wide_signed(value: (i128, u128)) -> Result<Self, ArithmeticError> {
+        let negative = value.0 < 0;
+        let magnitude = if negative {
+            let (low, carry) = (!value.1).overflowing_add(1);
+            ((!value.0 as u128).wrapping_add(carry as u128), low)
+        } else {
+            (value.0 as u128, value.1)
+        };
+        let shifted_high = magnitude.0 >> Self::FRAC_BITS;
+        let shifted = (magnitude.1 >> Self::FRAC_BITS) | (magnitude.0 << (128 - Self::FRAC_BITS));
+        if shifted_high != 0 {
+            return Err(ArithmeticError::CapacityBoundOverflow);
+        }
+        if negative {
+            if shifted > (1u128 << 127) {
+                return Err(ArithmeticError::CapacityBoundOverflow);
+            }
+            if shifted == (1u128 << 127) {
+                Ok(Self(i128::MIN))
+            } else {
+                Ok(Self((shifted as i128).wrapping_neg()))
+            }
+        } else if shifted <= i128::MAX as u128 {
+            Ok(Self(shifted as i128))
+        } else {
+            Err(ArithmeticError::CapacityBoundOverflow)
+        }
+    }
+
+    /// Computes a fixed-point dot product with exact 256-bit intermediate
+    /// accumulation before discarding the fractional bits.
+    pub fn dot_product(a: &[Self], b: &[Self]) -> Result<Self, ArithmeticError> {
+        if a.len() != b.len() {
+            return Err(ArithmeticError::DimensionMismatch);
+        }
+
+        let mut high = 0i128;
+        let mut low = 0u128;
+        for (&lhs, &rhs) in a.iter().zip(b) {
+            (high, low) = Self::add_wide_signed((high, low), lhs.wide_product(rhs))?;
+        }
+
+        Self::truncate_wide_signed((high, low))
+    }
+
+    pub fn lerp(a: Self, b: Self, t: Self) -> Result<Self, ArithmeticError> {
+        if t.0 < 0 || t.0 > Self::SCALE {
+            return Err(ArithmeticError::ParameterOutOfRange);
+        }
+        if t.0 == 0 {
+            return Ok(a);
+        }
+        if t.0 == Self::SCALE {
+            return Ok(b);
+        }
+
+        let delta = b.fallible_sub(a)?;
+        let scaled_delta = delta.fallible_mul(t)?;
+        a.fallible_add(scaled_delta)
     }
 
     #[inline]

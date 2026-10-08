@@ -9,6 +9,77 @@ pub mod proofs {
     const FRACTION_MASK: u128 = 0xFFFF_FFFF_FFFF_FFFF;
     const HALF_SCALE: u128 = 0x8000_0000_0000_0000;
 
+    type WideSigned = (i128, u128);
+
+    fn wide_mul_reference(lhs: i128, rhs: i128) -> WideSigned {
+        let abs_value = |value: i128| {
+            let unsigned = value as u128;
+            let mask = (value >> 127) as u128;
+            (unsigned ^ mask).wrapping_add(mask & 1)
+        };
+        let lhs_limbs = {
+            let value = abs_value(lhs);
+            [value as u64, (value >> 64) as u64]
+        };
+        let rhs_limbs = {
+            let value = abs_value(rhs);
+            [value as u64, (value >> 64) as u64]
+        };
+        let mut product = [0u64; 4];
+
+        for (i, &lhs_limb) in lhs_limbs.iter().enumerate() {
+            let mut carry = 0u128;
+            for (j, &rhs_limb) in rhs_limbs.iter().enumerate() {
+                let index = i + j;
+                let value =
+                    (lhs_limb as u128) * (rhs_limb as u128) + product[index] as u128 + carry;
+                product[index] = value as u64;
+                carry = value >> 64;
+            }
+            let index = i + 2;
+            let value = product[index] as u128 + carry;
+            product[index] = value as u64;
+            assert_eq!(value >> 64, 0);
+        }
+
+        let mut low = (product[1] as u128) << 64 | product[0] as u128;
+        let mut high = (product[3] as u128) << 64 | product[2] as u128;
+        if (lhs < 0) ^ (rhs < 0) {
+            let (negated_low, carry) = (!low).overflowing_add(1);
+            low = negated_low;
+            high = (!high).wrapping_add(carry as u128);
+        }
+        (high as i128, low)
+    }
+
+    fn wide_add_reference(lhs: WideSigned, rhs: WideSigned) -> WideSigned {
+        let (low, carry) = lhs.1.overflowing_add(rhs.1);
+        let high = lhs.0.checked_add(rhs.0).unwrap();
+        (high.checked_add(carry as i128).unwrap(), low)
+    }
+
+    fn wide_truncate_reference(value: WideSigned) -> i128 {
+        let negative = value.0 < 0;
+        let magnitude = if negative {
+            let (low, carry) = (!value.1).overflowing_add(1);
+            ((!value.0 as u128).wrapping_add(carry as u128), low)
+        } else {
+            (value.0 as u128, value.1)
+        };
+        assert_eq!(magnitude.0 >> I64F64::FRAC_BITS, 0);
+        let shifted =
+            (magnitude.1 >> I64F64::FRAC_BITS) | (magnitude.0 << (128 - I64F64::FRAC_BITS));
+        if negative {
+            if shifted == (1u128 << 127) {
+                i128::MIN
+            } else {
+                -(shifted as i128)
+            }
+        } else {
+            shifted as i128
+        }
+    }
+
     /// # Verification Vector: verify_i64f64_multiplication_tiny_fractional_products_truncate_to_zero
     /// Proves that bounded symbolic `i32` raw operands whose absolute magnitudes
     /// multiply below 2^64 return zero under raw `I64F64` multiplication.
@@ -737,6 +808,58 @@ pub mod proofs {
         assert_eq!(
             I64F64::from_bits(-scale).fallible_div(I64F64::from_bits(1)),
             Err(ArithmeticError::Overflow)
+        );
+    }
+
+    /// # Verification Vector: verify_i64f64_dot_product_bounded_unroll
+    #[kani::proof]
+    #[kani::unwind(3)]
+    pub fn verify_i64f64_dot_product_bounded_unroll() {
+        let lhs = [kani::any::<i16>() as i128, kani::any::<i16>() as i128];
+        let rhs = [kani::any::<i16>() as i128, kani::any::<i16>() as i128];
+        let expected = wide_truncate_reference(wide_add_reference(
+            wide_mul_reference(lhs[0], rhs[0]),
+            wide_mul_reference(lhs[1], rhs[1]),
+        ));
+        let actual = I64F64::dot_product(&lhs.map(I64F64::from_bits), &rhs.map(I64F64::from_bits));
+
+        assert_eq!(actual, Ok(I64F64::from_bits(expected)));
+    }
+
+    /// # Verification Vector: verify_i64f64_lerp_endpoint_exactness
+    #[kani::proof]
+    #[kani::unwind(3)]
+    pub fn verify_i64f64_lerp_endpoint_exactness() {
+        let a_bits = kani::any::<i16>() as i128;
+        let b_bits = kani::any::<i16>() as i128;
+        let t_bits = kani::any::<i16>() as i128;
+        kani::assume(t_bits >= 0);
+
+        let delta = b_bits - a_bits;
+        let scaled = wide_truncate_reference(wide_mul_reference(delta, t_bits));
+        let expected = a_bits.checked_add(scaled).unwrap();
+        let actual = I64F64::lerp(
+            I64F64::from_bits(a_bits),
+            I64F64::from_bits(b_bits),
+            I64F64::from_bits(t_bits),
+        );
+
+        assert_eq!(actual, Ok(I64F64::from_bits(expected)));
+        assert_eq!(
+            I64F64::lerp(
+                I64F64::from_bits(a_bits),
+                I64F64::from_bits(b_bits),
+                I64F64::from_bits(0),
+            ),
+            Ok(I64F64::from_bits(a_bits))
+        );
+        assert_eq!(
+            I64F64::lerp(
+                I64F64::from_bits(a_bits),
+                I64F64::from_bits(b_bits),
+                I64F64::from_bits(I64F64::SCALE),
+            ),
+            Ok(I64F64::from_bits(b_bits))
         );
     }
 }

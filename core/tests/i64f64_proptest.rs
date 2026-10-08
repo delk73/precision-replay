@@ -127,6 +127,92 @@ fn operator_sub(lhs: i128, rhs: i128) -> Result<i128, ()> {
         .map_err(|_| ())
 }
 
+type WideSigned = (i128, u128);
+
+fn wide_mul(lhs: i128, rhs: i128) -> WideSigned {
+    let lhs_abs = abs_bits(lhs);
+    let rhs_abs = abs_bits(rhs);
+    let product = mul_u64_limbs(lhs_abs, rhs_abs);
+    let mut low = (product[1] as u128) << 64 | product[0] as u128;
+    let mut high = (product[3] as u128) << 64 | product[2] as u128;
+
+    if (lhs < 0) ^ (rhs < 0) {
+        let (negated_low, carry) = (!low).overflowing_add(1);
+        low = negated_low;
+        high = (!high).wrapping_add(carry as u128);
+    }
+
+    (high as i128, low)
+}
+
+fn wide_add(lhs: WideSigned, rhs: WideSigned) -> Result<WideSigned, ArithmeticError> {
+    let (low, carry) = lhs.1.overflowing_add(rhs.1);
+    let high = lhs
+        .0
+        .checked_add(rhs.0)
+        .and_then(|value| value.checked_add(carry as i128))
+        .ok_or(ArithmeticError::CapacityBoundOverflow)?;
+    Ok((high, low))
+}
+
+fn wide_truncate(value: WideSigned) -> Result<i128, ArithmeticError> {
+    let negative = value.0 < 0;
+    let magnitude = if negative {
+        let (low, carry) = (!value.1).overflowing_add(1);
+        ((!value.0 as u128).wrapping_add(carry as u128), low)
+    } else {
+        (value.0 as u128, value.1)
+    };
+    if magnitude.0 >> 64 != 0 {
+        return Err(ArithmeticError::CapacityBoundOverflow);
+    }
+    let shifted = (magnitude.1 >> 64) | (magnitude.0 << 64);
+    if negative {
+        if shifted > (1u128 << 127) {
+            Err(ArithmeticError::CapacityBoundOverflow)
+        } else if shifted == (1u128 << 127) {
+            Ok(i128::MIN)
+        } else {
+            Ok(-(shifted as i128))
+        }
+    } else if shifted <= i128::MAX as u128 {
+        Ok(shifted as i128)
+    } else {
+        Err(ArithmeticError::CapacityBoundOverflow)
+    }
+}
+
+fn expected_dot(lhs: &[i128], rhs: &[i128]) -> Result<i128, ArithmeticError> {
+    if lhs.len() != rhs.len() {
+        return Err(ArithmeticError::DimensionMismatch);
+    }
+
+    let mut sum = (0, 0);
+    for (&a, &b) in lhs.iter().zip(rhs) {
+        sum = wide_add(sum, wide_mul(a, b))?;
+    }
+    wide_truncate(sum)
+}
+
+fn expected_lerp(a: i128, b: i128, t: i128) -> Result<i128, ArithmeticError> {
+    if !(0..=I64F64::SCALE).contains(&t) {
+        return Err(ArithmeticError::ParameterOutOfRange);
+    }
+    if t == 0 {
+        return Ok(a);
+    }
+    if t == I64F64::SCALE {
+        return Ok(b);
+    }
+
+    let delta = b
+        .checked_sub(a)
+        .ok_or(ArithmeticError::SubtractionOverflow)?;
+    let scaled = wide_truncate(wide_mul(delta, t))?;
+    a.checked_add(scaled)
+        .ok_or(ArithmeticError::AdditionOverflow)
+}
+
 proptest! {
     #[test]
     fn fallible_add_and_sub_match_checked_primitives(
@@ -249,6 +335,113 @@ proptest! {
         let actual = round_ties_to_even(I64F64::from_bits(bits));
         prop_assert_eq!(actual, expected);
     }
+
+    #[test]
+    fn dot_product_rejects_mismatched_slices(
+        lhs in prop::collection::vec(any::<i64>(), 0..5),
+        rhs in prop::collection::vec(any::<i64>(), 0..5),
+    ) {
+        prop_assume!(lhs.len() != rhs.len());
+        let lhs = lhs.into_iter().map(|value| I64F64::from_bits(value as i128)).collect::<Vec<_>>();
+        let rhs = rhs.into_iter().map(|value| I64F64::from_bits(value as i128)).collect::<Vec<_>>();
+
+        prop_assert_eq!(
+            I64F64::dot_product(&lhs, &rhs),
+            Err(ArithmeticError::DimensionMismatch)
+        );
+    }
+
+    #[test]
+    fn dot_product_is_commutative(
+        values in prop::collection::vec((any::<i128>(), any::<i128>()), 0..5),
+    ) {
+        let lhs = values.iter().map(|&(value, _)| I64F64::from_bits(value)).collect::<Vec<_>>();
+        let rhs = values.iter().map(|&(_, value)| I64F64::from_bits(value)).collect::<Vec<_>>();
+
+        prop_assert_eq!(I64F64::dot_product(&lhs, &rhs), I64F64::dot_product(&rhs, &lhs));
+    }
+
+    #[test]
+    fn dot_product_matches_independent_wide_oracle(
+        values in prop::collection::vec((any::<i128>(), any::<i128>()), 0..5),
+    ) {
+        let lhs = values.iter().map(|&(value, _)| I64F64::from_bits(value)).collect::<Vec<_>>();
+        let rhs = values.iter().map(|&(_, value)| I64F64::from_bits(value)).collect::<Vec<_>>();
+        let lhs_bits = values.iter().map(|&(value, _)| value).collect::<Vec<_>>();
+        let rhs_bits = values.iter().map(|&(_, value)| value).collect::<Vec<_>>();
+
+        prop_assert_eq!(
+            I64F64::dot_product(&lhs, &rhs).map(I64F64::to_bits),
+            expected_dot(&lhs_bits, &rhs_bits)
+        );
+    }
+
+    #[test]
+    fn single_element_dot_product_matches_scalar_multiplication(
+        lhs in any::<i32>(),
+        rhs in any::<i32>(),
+    ) {
+        let lhs = I64F64::from_bits(lhs as i128);
+        let rhs = I64F64::from_bits(rhs as i128);
+        prop_assert_eq!(I64F64::dot_product(&[lhs], &[rhs]), Ok(lhs * rhs));
+    }
+
+    #[test]
+    fn lerp_rejects_parameters_outside_unit_interval(
+        t in any::<i128>(),
+    ) {
+        prop_assume!(t < 0 || t > I64F64::SCALE);
+        let value = I64F64::from_bits(1);
+        prop_assert_eq!(
+            I64F64::lerp(value, value, I64F64::from_bits(t)),
+            Err(ArithmeticError::ParameterOutOfRange)
+        );
+    }
+
+    #[test]
+    fn lerp_has_exact_endpoints(a in any::<i128>(), b in any::<i128>()) {
+        prop_assert_eq!(
+            I64F64::lerp(I64F64::from_bits(a), I64F64::from_bits(b), I64F64::from_bits(0)),
+            Ok(I64F64::from_bits(a))
+        );
+        prop_assert_eq!(
+            I64F64::lerp(
+                I64F64::from_bits(a),
+                I64F64::from_bits(b),
+                I64F64::from_bits(I64F64::SCALE)
+            ),
+            Ok(I64F64::from_bits(b))
+        );
+    }
+
+    #[test]
+    fn lerp_matches_independent_wide_oracle(
+        a in any::<i128>(),
+        b in any::<i128>(),
+        t in 0i128..=I64F64::SCALE,
+    ) {
+        prop_assert_eq!(
+            I64F64::lerp(
+                I64F64::from_bits(a),
+                I64F64::from_bits(b),
+                I64F64::from_bits(t)
+            ).map(I64F64::to_bits),
+            expected_lerp(a, b, t)
+        );
+    }
+
+    #[test]
+    fn lerp_is_monotonic_for_ordered_endpoints(
+        a in -1_000_000i128..1_000_000i128,
+        b in -1_000_000i128..1_000_000i128,
+        t in 0i128..=I64F64::SCALE,
+    ) {
+        prop_assume!(a <= b);
+        let result = I64F64::lerp(I64F64::from_bits(a), I64F64::from_bits(b), I64F64::from_bits(t));
+        prop_assert!(result.is_ok());
+        prop_assert!(result.unwrap().to_bits() >= a);
+        prop_assert!(result.unwrap().to_bits() <= b);
+    }
 }
 
 #[test]
@@ -261,4 +454,15 @@ fn multiplication_boundary_oracle_classifies_saturation() {
         expected_mul(i128::MIN, I64F64::SCALE + 1),
         Err(ArithmeticError::CapacityBoundOverflow)
     );
+}
+
+#[test]
+fn dot_product_handles_large_cancellation_vectors() {
+    let lhs = [I64F64::from_bits(i128::MAX), I64F64::from_bits(i128::MIN)];
+    let rhs = [
+        I64F64::from_bits(I64F64::SCALE),
+        I64F64::from_bits(I64F64::SCALE),
+    ];
+
+    assert_eq!(I64F64::dot_product(&lhs, &rhs), Ok(I64F64::from_bits(-1)));
 }
